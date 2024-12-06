@@ -60,32 +60,29 @@ plugins:
 author:
   name   : "Ricardo Morales S."
   avatar : "/assets/images/cyber dead.jpg"
-  bio    : "My awesome biography constrained to a sentence or two goes here."
+  bio    : "INSERT AND INTERESTING DESCRIPTION XD"
   links:
-    - label: "Website"
-      icon: "fas fa-fw fa-link"
-      url: "https://"
     - label: "Twitter"
       icon: "fab fa-fw fa-twitter-square"
-      url: "https://twitter.com/"
+      url: "https://x.com/RicardoM1124"
     - label: "GitHub"
       icon: "fab fa-fw fa-github"
-      url: "https://github.com/"
-    - label: "Instagram"
-      icon: "fab fa-fw fa-instagram"
-      url: "https://instagram.com/"
+      url: "https://github.com/Z4kr-Sec/initHACK"
+    - label: "Linkedin"
+      icon: "fab fa-fw fa-linkedin"
+      url: "https://www.linkedin.com/in/ricardo-andres-morales-solorzano-491b26191/"
 
 footer:
   links:
     - label: "Twitter"
       icon: "fab fa-fw fa-twitter-square"
-      url: "https://twitter.com/"
+      url: "https://x.com/RicardoM1124"
     - label: "GitHub"
       icon: "fab fa-fw fa-github"
-      url: "https://github.com/"
-    - label: "Instagram"
-      icon: "fab fa-fw fa-instagram"
-      url: "https://instagram.com/"
+      url: "https://github.com/Z4kr-Sec/initHACK"
+    - label: "Linkedin"
+      icon: "fab fa-fw fa-linkedin"
+      url: "https://www.linkedin.com/in/ricardo-andres-morales-solorzano-491b26191/"
 
 defaults:
   # _posts
