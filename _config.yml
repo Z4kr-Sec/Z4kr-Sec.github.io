@@ -25,8 +25,8 @@ search: true
 
 # Build settings
 markdown: kramdown
-#remote_theme: mmistakes/minimal-mistakes
-theme: minimal-mistakes-jekyll
+remote_theme: mmistakes/minimal-mistakes
+#theme: minimal-mistakes-jekyll
 locale: "en-US"
 repository: "Z4kr-Sec/Z4kr-Sec.github.io"
 ##enable copy button 

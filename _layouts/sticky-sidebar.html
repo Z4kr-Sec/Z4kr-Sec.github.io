@@ -1,0 +1,13 @@
+<div class="post">
+    <div class="content">
+      {{ content }}
+    </div>
+    <div class="sidebar">
+      <ul id="sidebar-nav">
+        {% for heading in page.content | where_exp:"item", "item contains '<h2>'" %}
+        <li><a href="#{{ heading | slugify }}">{{ heading | strip_html }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  
