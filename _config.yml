@@ -61,7 +61,9 @@ plugins:
 author:
   name   : "Ricardo Morales S."
   avatar : "/assets/images/cyber dead.jpg"
-  bio    : "My awesome biography constrained to a sentence or two goes here."
+  bio    : " - Hack the Box rank - **Hacker**.
+ - FAU BS. Computer Science.
+ - Cyber security enthusiast."
   links:
   #  - label: "Website"
   #    icon: "fas fa-fw fa-envelope"
