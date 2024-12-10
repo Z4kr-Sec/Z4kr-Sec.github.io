@@ -4,14 +4,14 @@ layout: archive
 
 {{ content }}
 
-<h2>Projects</h2>
+
 <div class="entries-list">
   {% assign projects = site.posts | where: "categories", "Projects" %}
   
   {% for project in projects %}
     <div class="project-item">
       <a href="{{ project.url }}">{{ project.title }}</a>
-      <p>{{ project.excerpt | truncate: 150 }}</p>
+      <p>{{ project.excerpt | truncate: 200 }}</p>
     </div>
   {% endfor %}
 </div>
