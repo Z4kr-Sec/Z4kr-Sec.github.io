@@ -113,7 +113,7 @@ defaults:
 
 write_ups:
   type: liquid
-  path: /Write-Ups/
+  path: /Write-ups/
 tag_archive:
   type: liquid
   path: /tags/
