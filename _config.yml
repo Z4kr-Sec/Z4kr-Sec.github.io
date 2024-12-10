@@ -59,9 +59,9 @@ plugins:
 author:
   name   : "Ricardo Morales S."
   avatar : "/assets/images/cyber dead.jpg"
-  bio    : "Hack the Box rank - **Hacker** | BS. Computer Science | Cyber security enthusiast"
+  bio    : "Hack the Box rank --> **Hacker** -  BS. Computer Science - Cyber security enthusiast"
   links:
-    - label: "email-contact"
+    - label: "email"
       icon: "fas fa-fw fa-envelope"
       url: "mailto:z4rkseccontact@gmail.com"
     - label: "Twitter"
@@ -76,7 +76,7 @@ author:
 
 footer:
   links:
-    - label: "email-contact"
+    - label: "email"
       icon: "fas fa-fw fa-envelope"
       url: "mailto:z4rkseccontact@gmail.com"
     - label: "Twitter"
@@ -111,9 +111,9 @@ defaults:
       layout: single
       author_profile: true
 
-category_archive:
+write_ups:
   type: liquid
-  path: /categories/
+  path: /Write-Ups/
 tag_archive:
   type: liquid
   path: /tags/

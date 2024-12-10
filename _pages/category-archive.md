@@ -1,6 +1,6 @@
 ---
-title: "Posts by Category"
+title: "Write-Ups"
 layout: categories
-permalink: /categories/
+permalink: /Write-Ups/
 author_profile: true
 ---
