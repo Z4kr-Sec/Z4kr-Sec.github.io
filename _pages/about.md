@@ -3,26 +3,36 @@ permalink: /about/
 title: "About"
 toc: true
 toc_icon: "list"
+toc_tittle: 
 ---
 
 
-# Ricardo Morales Solorzano.
+# Ricardo Morales Solorzano. 
 
-I am a cyber and tech enthusias, that love gaming and understanding computers. for the las 3 years I've been studying Cyber Security with the help of **Hack The Box** I've  been able to begin from zero to learning such interesing stuff like:
-- asdas
-- asdasd
-- 
+Hello, I'm Z4kr, a passionate computer enthusiast with a lifelong curiosity about how computers work. From an early age, I’ve been fascinated by the intricacies of technology, which eventually led me to the world of cybersecurity. Around three or four years ago, I began my journey into hacking through the Hack The Box platform, and since then, I’ve been fortunate to explore a vast range of topics within the field of cybersecurity.
 
-Tempor velit sint sunt ipsum tempor enim ad qui ullamco. Est dolore anim ad velit duis dolore minim sunt aliquip amet commodo labore. Ut eu pariatur aute ea aute excepteur laborum. Esse ea esse excepteur minim mollit qui cillum excepteur ex dolore magna. Labore deserunt fugiat incididunt incididunt sint ea. Consequat dolore aute laboris quis proident quis non et est consectetur ex eiusmod sit culpa.
+During my university days, I participated in multiple Google coding contests, which further solidified my passion for problem-solving and programming. Over time, I expanded my skills through platforms like PortSwigger.net, Hack The Box Academy, and VulnLab.
 
-Cupidatat ea do et in excepteur in. Ad nostrud ut est esse eu duis ea sunt eiusmod. Aliquip tempor veniam sint elit fugiat. Velit incididunt laboris amet incididunt labore dolore irure velit excepteur commodo deserunt laborum. Consectetur eu fugiat veniam veniam Lorem labore magna eiusmod. Ea occaecat reprehenderit pariatur consectetur minim labore ut aliquip.
+I am an ethical hacker with a deep interest in penetration testing and red teaming. The goal of this page is to create a space where I can share my knowledge, insights, and techniques in this incredible world of cybersecurity. The primary focus will be on write-ups for retired Hack The Box machines, my personal projects, and proof-of-concept demonstrations.
 
-# HTB 
+# Hack The Box (HTB)
 ## Machines
-## writ-up total 
+ Total machines completed:
 
-# Prolabs 
-## dante 
-## zephyr
+ - Easy #: TBA
+ - Medium #: TBA
+ - Hard #: TBA 
+ - insane #: TBA
+ 
+ Total write-ups published: TBA
+
+
+## Prolabs  & Certs
+- Hack The Box - Dante Pro Lab 
+    - ***Completed on:*** Sept 2022
+- Hack The Box - Zephyr Pro Lab
+    - ***Completed on:*** Sept 2023
 
 # Contact 
+- email: z4rkseccontact@gmail.com
+- Discord : w1nz4c4r#0200

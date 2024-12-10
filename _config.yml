@@ -17,9 +17,7 @@ title: Z4kr Security.
 subtitle: Hack. Learn. Evolve
 email: 
 description: >- # this means to ignore newlines until "baseurl:"
- - Hack the Box rank - **Hacker**
- - FAU BS. Computer Science
- - Cyber security enthusiast
+ a web page in which my main goal is to show my knowledge and if it is possible to had anyone in the process :)
 twitter_username: username
 github_username: Z4kr-Sec
 minimal_mistakes_skin: "air"
@@ -61,13 +59,11 @@ plugins:
 author:
   name   : "Ricardo Morales S."
   avatar : "/assets/images/cyber dead.jpg"
-  bio    : " - Hack the Box rank - **Hacker**.
- - FAU BS. Computer Science.
- - Cyber security enthusiast."
+  bio    : "Hack the Box rank - **Hacker** | BS. Computer Science | Cyber security enthusiast"
   links:
-  #  - label: "Website"
-  #    icon: "fas fa-fw fa-envelope"
-  #    url: "https://"
+    - label: "email-contact"
+      icon: "fas fa-fw fa-envelope"
+      url: "mailto:z4rkseccontact@gmail.com"
     - label: "Twitter"
       icon: "fab fa-fw fa-x-twitter"
       url: "https://x.com/RicardoM1124"
@@ -80,6 +76,9 @@ author:
 
 footer:
   links:
+    - label: "email-contact"
+      icon: "fas fa-fw fa-envelope"
+      url: "mailto:z4rkseccontact@gmail.com"
     - label: "Twitter"
       icon: "fab fa-fw fa-x-twitter"
       url: "https://x.com/RicardoM1124"
