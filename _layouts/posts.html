@@ -1,5 +1,6 @@
 ---
 layout: archive
+toc: true
 ---
 
 {{ content }}
@@ -10,7 +11,7 @@ layout: archive
   
   {% for project in projects %}
     <div class="project-item">
-      <a href="{{ project.url }}">{{ project.title }}</a>
+      <h2><a href="{{ project.url }}">{{ project.title }}</a></h2>
       <p>{{ project.excerpt | truncate: 200 }}</p>
     </div>
   {% endfor %}
