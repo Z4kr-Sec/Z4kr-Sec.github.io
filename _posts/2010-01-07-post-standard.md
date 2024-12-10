@@ -2,7 +2,8 @@
 title: "Post: Standard"
 excerpt_separator: "<!--more-->"
 categories:
-  - Blog
+  - Linux
+  - Medium 
 tags:
   - Post Formats
   - readability

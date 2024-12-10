@@ -1,7 +1,8 @@
 ---
 title: "Post: Notice"
 categories:
-  - Blog
+  - Windows
+  - Hard
 tags:
   - Post Formats
   - notice
