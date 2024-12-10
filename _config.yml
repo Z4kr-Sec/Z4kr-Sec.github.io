@@ -111,7 +111,7 @@ defaults:
       layout: single
       author_profile: true
 
-write_ups:
+category_archive:
   type: liquid
   path: /Write-ups/
 tag_archive:
