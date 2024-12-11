@@ -4,31 +4,9 @@
 dificulty(Easy, medium,hard and insane )-->
 layout: archive
 ---
-
 {{ content }}
 
-<!-- Only show posts with the 'write-up' category -->
-{% assign write_ups = site.posts | where: "categories", "write-up" %}
-
-<div class="entries-{{ page.entries_layout | default: 'list' }}">
-  {% for post in write_ups %}
-    <div class="entry-item">
-      <a href="{{ post.url }}">{{ post.title }}</a>
-      <p>{{ post.excerpt | truncate: 150 }}</p>
-    </div>
-  {% endfor %}
+{% assign entries_layout = page.entries_layout | default: 'list' %}
+<div class="entries-{{ entries_layout }}">
+  {% include posts-category.html taxonomy=page.taxonomy type=entries_layout %}
 </div>
-
-<!-- Category counts (hidden for 'project' and 'write-up') -->
-<ul class="taxonomy__index">
-  {% assign category_counts = site.categories %}
-  {% for category in category_counts %}
-    {% unless category[0] == "write-up" or category[0] == "project" %}
-      <li>
-        <a href="{{ site.baseurl }}/categories/{{ category[0] | slugify }}">
-          <strong>{{ category[0] }}</strong> <span class="taxonomy__count">{{ category[1].size }}</span>
-        </a>
-      </li>
-    {% endunless %}
-  {% endfor %}
-</ul>
