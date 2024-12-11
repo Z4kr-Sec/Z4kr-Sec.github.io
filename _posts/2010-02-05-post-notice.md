@@ -1,6 +1,7 @@
 ---
 title: "Post: Notice"
 categories:
+  - write-up
   - Windows
   - Hard
 tags:
