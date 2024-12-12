@@ -8,7 +8,7 @@ header:
 categories:
   - write-up
   - Linux
-  - Medium
+  - Easy
 tags:
   - Mattermost
   - MySQL
