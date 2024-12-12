@@ -2,9 +2,7 @@
 layout: archive
 ---
 
-<div class="entries-list">
-    <h1>Write-Ups</h1>
-  
+<div class="entries-list">  
     {% assign writeups = site.posts | where: "categories", "write-up" %}
     {% assign years = writeups | map: "date" | map: "year" | uniq | sort | reverse %}
   
