@@ -1,6 +1,6 @@
 ---
 title: Delivery - Hack The Box
-excerpt: "Delivery is a Linux HTB machine, We start this machine by checking the web server hosted on port 80 "
+excerpt_separator: "Delivery is a Linux HTB machine, We start this machine by checking the web server hosted on port 80 "
 date: 2024-12-12
 header:
   teaser: /assets/images/HTB/Delivery/Delivery-Logo.png
@@ -21,7 +21,7 @@ toc_icon: "list"
 
 ![](/assets/images/HTB/Delivery/Delivery-Logo.png)
 
-### Machine IP = 10.10.10.222
+
 
 # Port Scan
 We start with the NMAP scan:
@@ -142,11 +142,11 @@ After selecting the team we are added to a chat and we can see some credentials 
 - **Pass =** Youve_G0t_Mail!
 
 Then, I tested the credentials that I got with crackmapexec to check if they were valid.
-```
+```bash
 crackmapexec ssh 10.10.10.222 -u maildeliverer  -p Youve_G0t_Mail!
 ```
 After confirming that they are valid I just proceed to log in to the machine with ssh.
-```
+```bash
 ssh maildeliverer@10.10.10.222
 ```
 ![](/assets/images/HTB/Delivery/Delivery-13.png)
@@ -158,7 +158,7 @@ and here we are able to get ***flag.txt***.
 # Privilege Escalation 
 
 Noving on with the privilege escalation I decided to check which users have the ability to execute commands from shell and we were able to find 3. 
-```
+```bash
 cat /etc/passwd | grep sh$
 ```
 
@@ -167,7 +167,7 @@ cat /etc/passwd | grep sh$
 
 As we are logged in as mailserver my first idea after finding the users was to check mattermost folder. For that, I just ran the following command and I was able to find it in the **opt** folder.
 
-```
+```bash
 find / -user mattermost 2>/dev/null | grep -v -E 'sys|proc|run'
 ```
 After looking into the files contained in that folder, I'm able to find inside de config folder a config.json file that contains some credentials to log in to the SQL server.
@@ -175,7 +175,8 @@ After looking into the files contained in that folder, I'm able to find inside d
 ![](/assets/images/HTB/Delivery/Delivery-16.png)
 
 I connect to the mysql DB with the credentials. For extra explanation on how to connect to the database please reffer the following [Link](https://www.jetbrains.com/help/datagrip/how-to-connect-to-mysql-with-unix-sockets.html#ec6a30bd)
-```
+
+```bash
  mysql -h localhost -u mmuser -p 
  enter password: Crack_The_MM_Admin_PW
 ```
@@ -187,13 +188,13 @@ With the help of netstat (or linpeas), I was able to see that port 3306 was list
 ![](/assets/images/HTB/Delivery/Delivery-17.png)
 
 Then, after been logged in we are able to find the *Mattermost DB*.
-```
+```sql
 show databases
 ```
 
 ![](/assets/images/HTB/Delivery/Delivery-18.png)
 
-```
+```sql
 use mattermost;
 show tables;
 ```
@@ -202,13 +203,13 @@ show tables;
 
 Travesing the data Im able to find some *usernames* and *passwords* on the table "Users"
 
-```
+```sql
 SELECT Username, Password,EmailVerified FROM Users;
 ```
 ![](/assets/images/HTB/Delivery/Delivery-20.png)
 
 From the following query I was able to find root hash. To identify the type of the hash that you have thanks to hashid. To find more on how to [identify Hashes](https://miloserdov.org/?p=1254)
-```
+```bash
 hashid -m '$2a$10$VM6EeymRxJ29r8Wjkr8Dtev0O.1STWb4.4ScG.anuu7v0EFJwgjjO'
 ```
 
@@ -216,7 +217,7 @@ hashid -m '$2a$10$VM6EeymRxJ29r8Wjkr8Dtev0O.1STWb4.4ScG.anuu7v0EFJwgjjO'
 
 Now as we read on the mattermost chat server, I need to create some variants (add some rules) of the password **PleaseSubscribe** to crack the hash that we got. To learn more about learning how to add rules to an existent password please reffer to the following [link](https://www.youtube.com/watch?v=SAvo_h7WSUc)
 
-```
+```bash
 hashcat --force pass.txt  -r /usr/share/hashcat/rules/best64.rule --stdout
 ```
 
@@ -224,14 +225,14 @@ hashcat --force pass.txt  -r /usr/share/hashcat/rules/best64.rule --stdout
 
 With the new dictionary created we are able to crack the password with the help of hashcat
 
-```
+```bash
 hashcat -m 3200 hash_root dict.txt
 ```
 ![](/assets/images/HTB/Delivery/Delivery-23.png)
 
 Finally, I just need to login as root with the cracked password and we are able to find the **root.txt** flag
 
-```
+```bash
 ssh root@10.10.10.222
 ```
 
