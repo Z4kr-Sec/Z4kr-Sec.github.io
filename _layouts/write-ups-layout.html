@@ -4,7 +4,6 @@ layout: archive
 
 <!-- Taxonomy Filtered for Write-Ups -->
 {% assign writeups = site.posts | where: "categories", "write-up" %}
-{% assign writeup_categories = writeups | map: "categories" | uniq | sort %}
 {% assign category_counts = {} %}
 
 <!-- Count the occurrences of each category -->
@@ -19,45 +18,56 @@ layout: archive
 <div class="taxonomy-list">
   <h2>Categories</h2>
   <ul>
-    {% for category in writeup_categories %}
-      <li><a href="/categories/{{ category | slugify }}">{{ category }}</a></li>
+    {% for category, count in category_counts %}
+      <li>
+        <!-- When category is clicked, it will filter posts by that category without reloading the page -->
+        <a href="javascript:void(0);" class="category-link" data-category="{{ category }}">
+          <strong>{{ category }}</strong> <span class="taxonomy__count">{{ count }}</span>
+        </a>
+      </li>
     {% endfor %}
   </ul>
 </div>
 
 <div class="entries-list">
-    <h1>Write-Ups</h1>
-  
-    {% assign writeups = site.posts | where: "categories", "write-up" %}
-    {% assign years = writeups | map: "date" | map: "year" | uniq | sort | reverse %}
-  
-    {% for year in years %}
-      <h2>{{ year }}</h2>
-      <ul>
-        {% for writeup in writeups %}
-          {% if writeup.date | date: "%Y" == year %}
-            <div class="write-up-item">
-                <h3><a href="{{ writeup.url }}">{{ writeup.title }}</a></h3>
-                <small>{{ writeup.date | date: "%B %d, %Y" }}</small>
-                <p>{{ writeup.excerpt_separator | truncate: 200 }}</p>
-            </div>
-          {% endif %}
-        {% endfor %}
-      </ul>
-    {% endfor %}
-  </div>
+  <h1>Write-Ups</h1>
 
+  {% assign years = writeups | map: "date" | map: "year" | uniq | sort | reverse %}
 
-
-
-  <!-- Posts by Category Section -->
-<div class="posts-by-category">
-    <h2>Posts by Category</h2>
-    <ul>
-      {% for category in writeup_categories %}
-        <li>
-          <a href="/categories/{{ category | slugify }}">{{ category }}</a> ({{ category_counts[category] }})
-        </li>
+  {% for year in years %}
+    <h2>{{ year }}</h2>
+    <ul class="year-{{ year }}">
+      {% for writeup in writeups %}
+        {% if writeup.date | date: "%Y" == year %}
+          <div class="write-up-item" data-categories="{{ writeup.categories | join: ',' }}">
+            <h2><a href="{{ writeup.url }}">{{ writeup.title }}</a></h2>
+            <small>{{ writeup.date | date: "%B %d, %Y" }}</small>
+            <p>{{ writeup.excerpt | truncate: 200 }}</p>
+          </div>
+        {% endif %}
       {% endfor %}
     </ul>
-  </div>
+  {% endfor %}
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const categoryLinks = document.querySelectorAll('.category-link');
+
+    // Filter posts based on category click
+    categoryLinks.forEach(link => {
+      link.addEventListener('click', function(e) {
+        const category = e.target.getAttribute('data-category');
+        const allPosts = document.querySelectorAll('.write-up-item');
+        
+        allPosts.forEach(post => {
+          if (post.getAttribute('data-categories').includes(category)) {
+            post.style.display = 'block';  // Show posts with the selected category
+          } else {
+            post.style.display = 'none';   // Hide posts without the selected category
+          }
+        });
+      });
+    });
+  });
+</script>
