@@ -1,8 +1,8 @@
 ---
 title: "Survellance - Hack The Box"
 excerpt_separator: "Survellance is a medium machine of Hack The Box (HTB), the machine  begins with identifying a CMS vulnerability on the webpage hosted on port 80, which grants initial access to the system. Through enumeration, I uncovered a database file containing an encrypted password. Cracking this password allows me to access a ZoneMinder instance running on localhost. By exploiting a known vulnerability in ZoneMinder, I elevate my access to the 'zoneminder' user. The final step involves leveraging sudo privileges to achieve full root access"
+
 date: 2024-05-27
-classes: wide
 categories:
   - write-up
   - Linux

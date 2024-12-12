@@ -3,13 +3,6 @@ layout: archive
 ---
 {{ content }}
 
-<div class="entries-list">
-    {% assign writeups = site.posts | where: "categories", "write-up" %}
+{% include posts-taxonomy.html taxonomies=site.categories %}
 
-    {% for writeup in writeups %}
-        <div class="writeup-item">
-            <h2><a hef="{{ writeup.url }}">{{ writeup.title }}</a></h2>
-            <p>{{ writeup.excerpt | truncate: 200 }}</p>
-        </div>
-    {% endfor %}
-</div>
+{% assign writeups = site.posts | where: "categories", "write-up" | sort: "date" | reverse %}
