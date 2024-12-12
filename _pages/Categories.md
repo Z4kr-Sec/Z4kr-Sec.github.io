@@ -1,6 +1,6 @@
 ---
 title: "Post by catergory "
-layout: Categories 
+layout: categories 
 permalink: /Write-ups/
 author_profile: true
 toc: true 

@@ -2,21 +2,6 @@
 layout: archive
 ---
 
-
-<!-- Taxonomy Filtered for Write-Ups -->
-{% assign writeups = site.posts | where: "categories", "write-up" %}
-{% assign writeup_categories = writeups | map: "categories" | uniq | sort %}
-
-<div class="taxonomy-list">
-  <h2>Categories</h2>
-  <ul>
-    {% for category in writeup_categories %}
-      <li><a href="/categories/{{ category | slugify }}">{{ category }}</a></li>
-    {% endfor %}
-  </ul>
-</div>
-
-
 <div class="entries-list">
     <h1>Write-Ups</h1>
   
