@@ -1,8 +1,23 @@
 ---
 layout: archive
 ---
-{{ content }}
-
-{% include posts-taxonomy.html taxonomies=site.categories %}
-
-{% assign writeups = site.posts | where: "categories", "write-up" | sort: "date" | reverse %}
+<div class="entries-list">
+    <h1>Write-Ups</h1>
+  
+    {% assign writeups = site.posts | where: "categories", "write-up" %}
+    {% assign years = writeups | map: "date" | map: "year" | uniq | sort | reverse %}
+  
+    {% for year in years %}
+      <h2>{{ year }}</h2>
+      <ul>
+        {% for writeup in writeups %}
+          {% if writeup.date | date: "%Y" == year %}
+            <li>
+              <a href="{{ writeup.url }}">{{ writeup.title }}</a>
+              <small>{{ writeup.date | date: "%B %d, %Y" }}</small>
+            </li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    {% endfor %}
+  </div>
