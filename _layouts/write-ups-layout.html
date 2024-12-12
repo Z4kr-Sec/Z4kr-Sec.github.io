@@ -1,0 +1,16 @@
+---
+layout: archive
+---
+{{ content }}
+
+
+<div class="entries-list">
+  {% assign projects = site.posts | where: "categories", "Projects" %}
+  
+  {% for project in projects %}
+    <div class="project-item">
+      <h2><a href="{{ project.url }}">{{ project.title }}</a></h2>
+      <p>{{ project.excerpt | truncate: 200 }}</p>
+    </div>
+  {% endfor %}
+</div>
