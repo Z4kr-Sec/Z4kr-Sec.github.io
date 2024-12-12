@@ -2,33 +2,6 @@
 layout: archive
 ---
 
-<!-- Taxonomy Filtered for Write-Ups -->
-{% assign writeups = site.posts | where: "categories", "write-up" %}
-{% assign category_counts = {} %}
-
-<!-- Count the occurrences of each category -->
-{% for writeup in writeups %}
-  {% for category in writeup.categories %}
-    {% if category != "write-up" %}
-      {% assign category_counts[category] = category_counts[category] | default: 0 | plus: 1 %}
-    {% endif %}
-  {% endfor %}
-{% endfor %}
-
-<div class="taxonomy-list">
-  <h2>Categories</h2>
-  <ul>
-    {% for category, count in category_counts %}
-      <li>
-        <!-- When category is clicked, it will filter posts by that category without reloading the page -->
-        <a href="javascript:void(0);" class="category-link" data-category="{{ category }}">
-          <strong>{{ category }}</strong> <span class="taxonomy__count">{{ count }}</span>
-        </a>
-      </li>
-    {% endfor %}
-  </ul>
-</div>
-
 <div class="entries-list">
   <h1>Write-Ups</h1>
 
@@ -49,25 +22,3 @@ layout: archive
     </ul>
   {% endfor %}
 </div>
-
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const categoryLinks = document.querySelectorAll('.category-link');
-
-    // Filter posts based on category click
-    categoryLinks.forEach(link => {
-      link.addEventListener('click', function(e) {
-        const category = e.target.getAttribute('data-category');
-        const allPosts = document.querySelectorAll('.write-up-item');
-        
-        allPosts.forEach(post => {
-          if (post.getAttribute('data-categories').includes(category)) {
-            post.style.display = 'block';  // Show posts with the selected category
-          } else {
-            post.style.display = 'none';   // Hide posts without the selected category
-          }
-        });
-      });
-    });
-  });
-</script>

@@ -122,3 +122,6 @@ Write-ups:
 tag_archive:
   type: liquid
   path: /tags/
+categories:
+  type: liquid
+  path: /Categories/
