@@ -1,7 +1,7 @@
 ---
 title: "Post by catergory "
 layout: categories 
-permalink: /Write-ups/
+permalink: /categories/
 author_profile: true
 toc: true 
 ---
