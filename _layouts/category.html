@@ -6,14 +6,8 @@ layout: archive
 ---
 {{ content }}
 
-
-<div class="entries-list">
-  {% assign projects = site.posts | where: "categories", "write-up" %}
-  
-  {% for project in projects %}
-    <div class="project-item">
-      <h2><a href="{{ project.url }}">{{ project.title }}</a></h2>
-      <p>{{ project.excerpt | truncate: 200 }}</p>
-    </div>
-  {% endfor %}
+{% assign entries_layout = page.entries_layout | default: 'list' %}
+<div class="entries-{{ entries_layout }}">
+  {% include posts-category.html taxonomy=page.taxonomy type=entries_layout %}
 </div>
+<h1>testing X2</h1>
