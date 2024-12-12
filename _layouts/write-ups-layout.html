@@ -1,9 +1,20 @@
 ---
 layout: archive
 ---
+
 <!-- Taxonomy Filtered for Write-Ups -->
 {% assign writeups = site.posts | where: "categories", "write-up" %}
 {% assign writeup_categories = writeups | map: "categories" | uniq | sort %}
+{% assign category_counts = {} %}
+
+<!-- Count the occurrences of each category -->
+{% for writeup in writeups %}
+  {% for category in writeup.categories %}
+    {% if category != "write-up" %}
+      {% assign category_counts[category] = category_counts[category] | default: 0 | plus: 1 %}
+    {% endif %}
+  {% endfor %}
+{% endfor %}
 
 <div class="taxonomy-list">
   <h2>Categories</h2>
@@ -13,7 +24,6 @@ layout: archive
     {% endfor %}
   </ul>
 </div>
-
 
 <div class="entries-list">
     <h1>Write-Ups</h1>
@@ -35,4 +45,19 @@ layout: archive
         {% endfor %}
       </ul>
     {% endfor %}
+  </div>
+
+
+
+
+  <!-- Posts by Category Section -->
+<div class="posts-by-category">
+    <h2>Posts by Category</h2>
+    <ul>
+      {% for category in writeup_categories %}
+        <li>
+          <a href="/categories/{{ category | slugify }}">{{ category }}</a> ({{ category_counts[category] }})
+        </li>
+      {% endfor %}
+    </ul>
   </div>
