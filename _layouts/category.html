@@ -5,8 +5,19 @@ dificulty(Easy, medium,hard and insane )-->
 layout: archive
 ---
 
+
 {{ content }}
 
+<!-- Only show posts with the 'write-up' category -->
+{% assign write_ups = site.posts | where: "categories", "write-up" %}
+
+<div class="entries-{{ page.entries_layout | default: 'list' }}">
+  {% for post in write_ups %}
+    <div class="entry-item">
+      <a href="{{ post.url }}">{{ post.title }}</a>
+      <p>{{ post.excerpt | truncate: 150 }}</p>
+    </div>
+  {% endfor %}
 <!-- Only show posts with the 'write-up' category -->
 {% assign write_ups = site.posts | where: "categories", "write-up" %}
 
