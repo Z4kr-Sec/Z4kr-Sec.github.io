@@ -1,6 +1,8 @@
 ---
 layout: archive
 ---
+{% include posts-taxonomy.html taxonomies=site.categories %}
+
 <div class="entries-list">
     <h1>Write-Ups</h1>
   
@@ -12,10 +14,11 @@ layout: archive
       <ul>
         {% for writeup in writeups %}
           {% if writeup.date | date: "%Y" == year %}
-            <li>
-              <a href="{{ writeup.url }}">{{ writeup.title }}</a>
-              <small>{{ writeup.date | date: "%B %d, %Y" }}</small>
-            </li>
+            <div class="write-up-item">
+                <h2><a href="{{ writeup.url }}">{{ writeup.title }}</a></h2>
+                <small>{{ writeup.date | date: "%B %d, %Y" }}</small>
+                <p>{{ writeup.excerpt_separator | truncate: 200 }}</p>
+            </div>
           {% endif %}
         {% endfor %}
       </ul>
