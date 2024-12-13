@@ -59,7 +59,7 @@ Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 
 The scan reveal *2 open ports* (22 & 80) and we can see its redirecting to the domain *analytical.htb*. Adding analytical.htb to /etc/hosts allowed us to access the web service; after investigating the web page we can find a subdomain, data.analytical.htb, hosting a **Metabase** login page.
 
-![Alt Text](/assets/images/HTB/Analytics/Analytics1.png)
+![Alt Text](/assets/images/HTB/Analytics/Analitics1.png)
 
 # FoorHold.
 
@@ -70,7 +70,7 @@ I looked only for "metabase Vulnerabilities" and I am able to find an unauthenti
 
 If we go to http://data.analytical.htb/api/session/properties we will be able to see some "restictied/privileged" information the API is providing us due to **insufficient validation and accass control** on metabase.
 
-![Alt Text](/assets/images/HTB/Analytics/Analytics2.png)
+![Alt Text](/assets/images/HTB/Analytics/Analitics2.png)
 
 - **setup-token** :249fa03d-fd94-4d5b-b94f-b4ebf3df681f
 
@@ -150,12 +150,12 @@ Content-Length: 822
 }
 ```
 
-![Alt Text](/assets/images/HTB/Analytics/Analytics3.png)
+![Alt Text](/assets/images/HTB/Analytics/Analitics3.png)
 
 
 Before sending the Burp request (payload), we set up a listener on port 443 to capture the reverse shell.
 
-![Alt Text](/assets/images/HTB/Analytics/Analytics5.png)
+![Alt Text](/assets/images/HTB/Analytics/Analitics5.png)
 
 # Privilege escalation - Root.
 
@@ -165,7 +165,7 @@ Something that i usually do when i get to a new system is to check the *envirome
 env
 ```
 
-![Alt Text](/assets/images/HTB/Analytics/Analytics6.png)
+![Alt Text](/assets/images/HTB/Analytics/Analitics6.png)
 
 Inspecting the environment variables revealed application(metabase) credentials:
 •	User: metalytics
@@ -203,8 +203,8 @@ whoami
 ![Alt Text](/assets/images/HTB/Analytics/analytics9.png)
 
 # Takeaways:
-•	Always start with thorough enumeration, as it uncovers critical entry points like subdomains or API endpoints.
-•	CVE research and public write-ups are invaluable for learning manual exploitation techniques.
-•	Kernel privilege escalation remains a go-to technique when user-level access is obtained.
-By following this step-by-step guide, we successfully exploited and rooted the machine. It’s a great example of chaining vulnerabilities for a complete compromise!
+-	Always start with thorough enumeration, as it uncovers critical entry points like subdomains or API endpoints.
+-	CVE research and public write-ups are invaluable for learning manual exploitation techniques.
+-	Kernel privilege escalation remains a go-to technique when user-level access is obtained.
+- By following this step-by-step guide, we successfully exploited and rooted the machine. It’s a great example of chaining vulnerabilities for a complete compromise!
 
