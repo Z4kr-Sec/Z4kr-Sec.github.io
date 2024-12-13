@@ -24,7 +24,7 @@ toc_icon: "list"
 
 ![survellance Logo](/assets/images/HTB/survellance/Surveillance-LOGO.png)
 
-# enumeration 
+# Enumeration 
 
 ## Port Scan
 
