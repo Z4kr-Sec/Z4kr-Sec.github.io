@@ -21,7 +21,7 @@ header:
   teaser: /assets/images/HTB/survellance/Surveillance-LOGO.png
   teaser_home_page: true
 toc: true
-toc_label: "Analytixs content."
+toc_label: "Analytics content."
 toc_icon: "list"
 ---
 
@@ -184,7 +184,7 @@ The target machine was running **Ubuntu 22.04.2**. A quick search revealed a pri
 ```bash
 uname -a
 ```
-![Alt Text](/assets/images/HTB/Analytics/Analytics7.png)
+![Alt Text](/assets/images/HTB/Analytics/Analitics7.png)
 
 After trying out multiple exploits I was able to find a [working exploit.](https://github.com/g1vi/CVE-2023-2640-CVE-2023-32629)
 
