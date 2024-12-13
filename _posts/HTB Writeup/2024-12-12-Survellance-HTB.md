@@ -10,7 +10,7 @@ categories:
 tags:
   - CMS
   - Craft CMS
-  - unauth-RCE
+  - Unauth-RCE
   - CVE-2023-41892
   - Port fowarding
   - CVE-2023-26035

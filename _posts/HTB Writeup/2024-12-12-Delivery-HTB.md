@@ -12,7 +12,7 @@ categories:
 tags:
   - Mattermost
   - MySQL
-  - hashcat
+  - Hashcat
 
 toc: true
 toc_label: "Delivery content."

