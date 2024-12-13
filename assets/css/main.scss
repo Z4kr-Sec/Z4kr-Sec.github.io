@@ -12,7 +12,10 @@ search: false
 body {
     font-size: 24px; /* Adjust the font size as needed */
   }
-
-article, archive {
+.archive { 
     font-size: 16px;
 }
+article {
+    font-size: 16px;
+}
+
