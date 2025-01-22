@@ -19,12 +19,12 @@ I am an ethical hacker with a deep interest in penetration testing and red teami
 ## Machines
  Total machines completed:
 
- - Easy #: TBA
- - Medium #: TBA
- - Hard #: TBA 
- - insane #: TBA
+ - Easy #: 23.
+ - Medium #: 16.
+ - Hard #: 3. 
+ - insane #: 0
  
- Total write-ups published: TBA
+ Total write-ups published: 3.
 
 
 ## Prolabs  & Certs
