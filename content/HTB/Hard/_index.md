@@ -1,7 +1,6 @@
 ---
 title: "Hard"
 date: 2025-04-27T23:10:02-04:00
-draft: true
 weight: 3
 ---
 {{< figure

@@ -1,7 +1,6 @@
 ---
 title: "Medium"
 date: 2025-04-27T23:09:51-04:00
-draft: true
 weight: 2
 ---
 {{< figure
