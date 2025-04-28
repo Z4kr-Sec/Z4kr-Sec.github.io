@@ -44,6 +44,10 @@ menu:
 
 
 
+caches:
+  images:
+    dir: :cacheDir/images
+
 params:
 
   # Search
