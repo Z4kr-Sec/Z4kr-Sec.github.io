@@ -1,0 +1,65 @@
+baseURL: https://z4kr-sec.github.io/
+disablePathToLower: False
+languageCode: en-us
+#Hugo Title Site.
+title: Z4kr Security.
+theme : hextra
+
+
+markup:
+  # allow raw html
+  goldmark:
+    renderer:
+      unsafe: true
+
+  # enable hextra syntax highlight
+  highlight:
+    noClasses: false
+
+
+# Menu Barra superior 
+menu:
+  main:
+    - name: Home.
+      pageRef: /
+      weight : 1
+    - name: Pentes Notes.
+      pageRef: /Pentest-Notes/
+      weight: 2
+    - name: HTB Write-Ups.
+      pageRef: /HTB
+      weight: 3
+    - name: About.
+      pageRef: /about
+      weight: 4
+    - name: Search
+      weight: 6
+      params:
+        type: search
+#    - name: GitHub
+#      weight: 5
+#      url: "https://github.com/Z4kr-Sec"
+#      params:
+#        icon: github
+
+
+
+params:
+
+  # Search
+  search:
+    enable: true
+    type: flexsearch
+
+    flexsearch:
+      # index page by: content | summary | heading | title
+      index: content
+
+
+  footer:
+    displayCopyright: true
+    displayPoweredBy: true
+  
+  navbar:
+    displayTitle: true
+    displayLogo: false

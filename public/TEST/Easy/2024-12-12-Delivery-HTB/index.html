@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en"><head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon shortcut" href="/favicon.ico" sizes="32x32" />
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="/favicon-dark.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" />
+<link rel="icon" href="/favicon-16x16.png" type="image/png" sizes="16x16" />
+<link rel="icon" href="/favicon-32x32.png" type="image/png" sizes="32x32" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+<link fetchpriority="low" href="/site.webmanifest" rel="manifest" />
+<title>Delivery - Hack The Box – Z4kr Security.</title>
+  <meta name="description" content="
+Port ScanWe start with the NMAP scan:
+nmap -sS -sV -sC -p- -vvv -oA nmap/allPorts 10.10.10.222 # Nmap 7.93 scan initiated Fri Mar 3 10:50:32 2023 as: nmap -sS -sV -sC -p- -vvv -oA nmap/allPorts 10.10.10.222 Nmap scan report for 10.10.10.222 Host is up, received echo-reply ttl 63 (0.047s latency). Scanned at 2023-03-03 10:50:32 EST for 216s Not shown: 65532 closed tcp ports (reset) PORT STATE SERVICE REASON VERSION 22/tcp open ssh syn-ack ttl 63 OpenSSH 7.9p1 Debian 10&#43;deb10u2 (protocol 2.0) | ssh-hostkey: | 2048 9c40fa859b01acac0ebc0c19518aee27 (RSA) | ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCq549E025Q9FR27LDR6WZRQ52ikKjKUQLmE9ndEKjB0i1qOoL&#43;WzkvqTdqEU6fFW6AqUIdSEd7GMNSMOk66otFgSoerK6MmH5IZjy4JqMoNVPDdWfmEiagBlG3H7IZ7yAO8gcg0RRrIQjE7XTMV09GmxEUtjojoLoqudUvbUi8COHCO6baVmyjZRlXRCQ6qTKIxRZbUAo0GOY8bYmf9sMLf70w6u/xbE2EYDFH&#43;w60ES2K906x7lyfEPe73NfAIEhHNL8DBAUfQWzQjVjYNOLqGp/WdlKA1RLAOklpIdJQ9iehsH0q6nqjeTUv47mIHUiqaM&#43;vlkCEAN3AAQH5mB/1 | 256 5a0cc03b9b76552e6ec4f4b95d761709 (ECDSA) | ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBAiAKnk2lw0GxzzqMXNsPQ1bTk35WwxCa3ED5H34T1yYMiXnRlfssJwso60D34/IM8vYXH0rznR9tHvjdN7R3hY= | 256 b79df7489da2f27630fd42d3353a808c (ED25519) |_ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEV5D6eYjySqfhW4l4IF1SZkZHxIRihnY6Mn6D8mLEW7 80/tcp open http syn-ack ttl 63 nginx 1.14.2 |_http-title: Welcome | http-methods: |_ Supported Methods: GET HEAD |_http-server-header: nginx/1.14.2 8065/tcp open unknown syn-ack ttl 63 | fingerprint-strings: | GenericLines, Help, RTSPRequest, SSLSessionReq, TerminalServerCookie: | HTTP/1.1 400 Bad Request | Content-Type: text/plain; charset=utf-8 | Connection: close | Request | GetRequest: | HTTP/1.0 200 OK | Accept-Ranges: bytes | Cache-Control: no-cache, max-age=31556926, public | Content-Length: 3108 | Content-Security-Policy: frame-ancestors &#39;self&#39;; script-src &#39;self&#39; cdn.rudderlabs.com | Content-Type: text/html; charset=utf-8 | Last-Modified: Fri, 03 Mar 2023 15:39:20 GMT | X-Frame-Options: SAMEORIGIN | X-Request-Id: rqguydjcq7fu7my6o44o7sw5pc | X-Version-Id: 5.30.0.5.30.1.57fb31b889bf81d99d8af8176d4bbaaa.false | Date: Fri, 03 Mar 2023 15:52:43 GMT | &lt;!doctype html&gt;&lt;html lang=&#34;en&#34;&gt;&lt;head&gt;&lt;meta charset=&#34;utf-8&#34;&gt;&lt;meta name=&#34;viewport&#34; content=&#34;width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0&#34;&gt;&lt;meta name=&#34;robots&#34; content=&#34;noindex, nofollow&#34;&gt;&lt;meta name=&#34;referrer&#34; content=&#34;no-referrer&#34;&gt;&lt;title&gt;Mattermost&lt;/title&gt;&lt;meta name=&#34;mobile-web-app-capable&#34; content=&#34;yes&#34;&gt;&lt;meta name=&#34;application-name&#34; content=&#34;Mattermost&#34;&gt;&lt;meta name=&#34;format-detection&#34; content=&#34;telephone=no&#34;&gt;&lt;link re | HTTPOptions: | HTTP/1.0 405 Method Not Allowed | Date: Fri, 03 Mar 2023 15:52:43 GMT |_ Content-Length: 0EnumerationAs I usually do I start with the port that I feel most comfortable with, which in this case is port 80. this is a standard page but if we go to the contact us page you will be able to find the hostname for the webserver and one subdomain. " /><link rel="canonical" href="http://localhost:1313/TEST/Easy/2024-12-12-Delivery-HTB/" itemprop="url" />
+
+<meta property="og:title" content="Delivery - Hack The Box" />
+<meta property="og:description" content="
+Port ScanWe start with the NMAP scan:
+
+nmap -sS -sV -sC -p- -vvv -oA nmap/allPorts 10.10.10.222
+
+
+
+# Nmap 7.93 scan initiated Fri Mar  3 10:50:32 2023 as: nmap -sS -sV -sC -p- -vvv -oA nmap/allPorts 10.10.10.222
+Nmap scan report for 10.10.10.222
+Host is up, received echo-reply ttl 63 (0.047s latency).
+Scanned at 2023-03-03 10:50:32 EST for 216s
+Not shown: 65532 closed tcp ports (reset)
+PORT     STATE SERVICE REASON         VERSION
+22/tcp   open  ssh     syn-ack ttl 63 OpenSSH 7.9p1 Debian 10&#43;deb10u2 (protocol 2.0)
+| ssh-hostkey: 
+|   2048 9c40fa859b01acac0ebc0c19518aee27 (RSA)
+| ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCq549E025Q9FR27LDR6WZRQ52ikKjKUQLmE9ndEKjB0i1qOoL&#43;WzkvqTdqEU6fFW6AqUIdSEd7GMNSMOk66otFgSoerK6MmH5IZjy4JqMoNVPDdWfmEiagBlG3H7IZ7yAO8gcg0RRrIQjE7XTMV09GmxEUtjojoLoqudUvbUi8COHCO6baVmyjZRlXRCQ6qTKIxRZbUAo0GOY8bYmf9sMLf70w6u/xbE2EYDFH&#43;w60ES2K906x7lyfEPe73NfAIEhHNL8DBAUfQWzQjVjYNOLqGp/WdlKA1RLAOklpIdJQ9iehsH0q6nqjeTUv47mIHUiqaM&#43;vlkCEAN3AAQH5mB/1
+|   256 5a0cc03b9b76552e6ec4f4b95d761709 (ECDSA)
+| ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBAiAKnk2lw0GxzzqMXNsPQ1bTk35WwxCa3ED5H34T1yYMiXnRlfssJwso60D34/IM8vYXH0rznR9tHvjdN7R3hY=
+|   256 b79df7489da2f27630fd42d3353a808c (ED25519)
+|_ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEV5D6eYjySqfhW4l4IF1SZkZHxIRihnY6Mn6D8mLEW7
+80/tcp   open  http    syn-ack ttl 63 nginx 1.14.2
+|_http-title: Welcome
+| http-methods: 
+|_  Supported Methods: GET HEAD
+|_http-server-header: nginx/1.14.2
+8065/tcp open  unknown syn-ack ttl 63
+| fingerprint-strings: 
+|   GenericLines, Help, RTSPRequest, SSLSessionReq, TerminalServerCookie: 
+|     HTTP/1.1 400 Bad Request
+|     Content-Type: text/plain; charset=utf-8
+|     Connection: close
+|     Request
+|   GetRequest: 
+|     HTTP/1.0 200 OK
+|     Accept-Ranges: bytes
+|     Cache-Control: no-cache, max-age=31556926, public
+|     Content-Length: 3108
+|     Content-Security-Policy: frame-ancestors &#39;self&#39;; script-src &#39;self&#39; cdn.rudderlabs.com
+|     Content-Type: text/html; charset=utf-8
+|     Last-Modified: Fri, 03 Mar 2023 15:39:20 GMT
+|     X-Frame-Options: SAMEORIGIN
+|     X-Request-Id: rqguydjcq7fu7my6o44o7sw5pc
+|     X-Version-Id: 5.30.0.5.30.1.57fb31b889bf81d99d8af8176d4bbaaa.false
+|     Date: Fri, 03 Mar 2023 15:52:43 GMT
+|     &lt;!doctype html&gt;&lt;html lang=&#34;en&#34;&gt;&lt;head&gt;&lt;meta charset=&#34;utf-8&#34;&gt;&lt;meta name=&#34;viewport&#34; content=&#34;width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0&#34;&gt;&lt;meta name=&#34;robots&#34; content=&#34;noindex, nofollow&#34;&gt;&lt;meta name=&#34;referrer&#34; content=&#34;no-referrer&#34;&gt;&lt;title&gt;Mattermost&lt;/title&gt;&lt;meta name=&#34;mobile-web-app-capable&#34; content=&#34;yes&#34;&gt;&lt;meta name=&#34;application-name&#34; content=&#34;Mattermost&#34;&gt;&lt;meta name=&#34;format-detection&#34; content=&#34;telephone=no&#34;&gt;&lt;link re
+|   HTTPOptions: 
+|     HTTP/1.0 405 Method Not Allowed
+|     Date: Fri, 03 Mar 2023 15:52:43 GMT
+|_    Content-Length: 0
+  
+    
+    
+  
+
+
+EnumerationAs I usually do I start with the port that I feel most comfortable with, which in this case is port 80. this is a standard page but if we go to the contact us page you will be able to find the hostname for the webserver and one subdomain.
+" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://localhost:1313/TEST/Easy/2024-12-12-Delivery-HTB/" /><meta property="article:section" content="test" />
+<meta property="article:published_time" content="2024-12-12T00:00:00+00:00" />
+<meta property="article:modified_time" content="2024-12-12T00:00:00+00:00" />
+
+  <meta itemprop="name" content="Delivery - Hack The Box">
+  <meta itemprop="description" content="Port ScanWe start with the NMAP scan:
+nmap -sS -sV -sC -p- -vvv -oA nmap/allPorts 10.10.10.222 # Nmap 7.93 scan initiated Fri Mar 3 10:50:32 2023 as: nmap -sS -sV -sC -p- -vvv -oA nmap/allPorts 10.10.10.222 Nmap scan report for 10.10.10.222 Host is up, received echo-reply ttl 63 (0.047s latency). Scanned at 2023-03-03 10:50:32 EST for 216s Not shown: 65532 closed tcp ports (reset) PORT STATE SERVICE REASON VERSION 22/tcp open ssh syn-ack ttl 63 OpenSSH 7.9p1 Debian 10&#43;deb10u2 (protocol 2.0) | ssh-hostkey: | 2048 9c40fa859b01acac0ebc0c19518aee27 (RSA) | ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCq549E025Q9FR27LDR6WZRQ52ikKjKUQLmE9ndEKjB0i1qOoL&#43;WzkvqTdqEU6fFW6AqUIdSEd7GMNSMOk66otFgSoerK6MmH5IZjy4JqMoNVPDdWfmEiagBlG3H7IZ7yAO8gcg0RRrIQjE7XTMV09GmxEUtjojoLoqudUvbUi8COHCO6baVmyjZRlXRCQ6qTKIxRZbUAo0GOY8bYmf9sMLf70w6u/xbE2EYDFH&#43;w60ES2K906x7lyfEPe73NfAIEhHNL8DBAUfQWzQjVjYNOLqGp/WdlKA1RLAOklpIdJQ9iehsH0q6nqjeTUv47mIHUiqaM&#43;vlkCEAN3AAQH5mB/1 | 256 5a0cc03b9b76552e6ec4f4b95d761709 (ECDSA) | ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBAiAKnk2lw0GxzzqMXNsPQ1bTk35WwxCa3ED5H34T1yYMiXnRlfssJwso60D34/IM8vYXH0rznR9tHvjdN7R3hY= | 256 b79df7489da2f27630fd42d3353a808c (ED25519) |_ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEV5D6eYjySqfhW4l4IF1SZkZHxIRihnY6Mn6D8mLEW7 80/tcp open http syn-ack ttl 63 nginx 1.14.2 |_http-title: Welcome | http-methods: |_ Supported Methods: GET HEAD |_http-server-header: nginx/1.14.2 8065/tcp open unknown syn-ack ttl 63 | fingerprint-strings: | GenericLines, Help, RTSPRequest, SSLSessionReq, TerminalServerCookie: | HTTP/1.1 400 Bad Request | Content-Type: text/plain; charset=utf-8 | Connection: close | Request | GetRequest: | HTTP/1.0 200 OK | Accept-Ranges: bytes | Cache-Control: no-cache, max-age=31556926, public | Content-Length: 3108 | Content-Security-Policy: frame-ancestors &#39;self&#39;; script-src &#39;self&#39; cdn.rudderlabs.com | Content-Type: text/html; charset=utf-8 | Last-Modified: Fri, 03 Mar 2023 15:39:20 GMT | X-Frame-Options: SAMEORIGIN | X-Request-Id: rqguydjcq7fu7my6o44o7sw5pc | X-Version-Id: 5.30.0.5.30.1.57fb31b889bf81d99d8af8176d4bbaaa.false | Date: Fri, 03 Mar 2023 15:52:43 GMT | &lt;!doctype html&gt;&lt;html lang=&#34;en&#34;&gt;&lt;head&gt;&lt;meta charset=&#34;utf-8&#34;&gt;&lt;meta name=&#34;viewport&#34; content=&#34;width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0&#34;&gt;&lt;meta name=&#34;robots&#34; content=&#34;noindex, nofollow&#34;&gt;&lt;meta name=&#34;referrer&#34; content=&#34;no-referrer&#34;&gt;&lt;title&gt;Mattermost&lt;/title&gt;&lt;meta name=&#34;mobile-web-app-capable&#34; content=&#34;yes&#34;&gt;&lt;meta name=&#34;application-name&#34; content=&#34;Mattermost&#34;&gt;&lt;meta name=&#34;format-detection&#34; content=&#34;telephone=no&#34;&gt;&lt;link re | HTTPOptions: | HTTP/1.0 405 Method Not Allowed | Date: Fri, 03 Mar 2023 15:52:43 GMT |_ Content-Length: 0EnumerationAs I usually do I start with the port that I feel most comfortable with, which in this case is port 80. this is a standard page but if we go to the contact us page you will be able to find the hostname for the webserver and one subdomain.">
+  <meta itemprop="datePublished" content="2024-12-12T00:00:00+00:00">
+  <meta itemprop="dateModified" content="2024-12-12T00:00:00+00:00">
+  <meta itemprop="wordCount" content="1178">
+  <meta itemprop="keywords" content="Mattermost,MySQL,Hashcat">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Delivery - Hack The Box">
+  <meta name="twitter:description" content="Port ScanWe start with the NMAP scan:
+nmap -sS -sV -sC -p- -vvv -oA nmap/allPorts 10.10.10.222 # Nmap 7.93 scan initiated Fri Mar 3 10:50:32 2023 as: nmap -sS -sV -sC -p- -vvv -oA nmap/allPorts 10.10.10.222 Nmap scan report for 10.10.10.222 Host is up, received echo-reply ttl 63 (0.047s latency). Scanned at 2023-03-03 10:50:32 EST for 216s Not shown: 65532 closed tcp ports (reset) PORT STATE SERVICE REASON VERSION 22/tcp open ssh syn-ack ttl 63 OpenSSH 7.9p1 Debian 10&#43;deb10u2 (protocol 2.0) | ssh-hostkey: | 2048 9c40fa859b01acac0ebc0c19518aee27 (RSA) | ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCq549E025Q9FR27LDR6WZRQ52ikKjKUQLmE9ndEKjB0i1qOoL&#43;WzkvqTdqEU6fFW6AqUIdSEd7GMNSMOk66otFgSoerK6MmH5IZjy4JqMoNVPDdWfmEiagBlG3H7IZ7yAO8gcg0RRrIQjE7XTMV09GmxEUtjojoLoqudUvbUi8COHCO6baVmyjZRlXRCQ6qTKIxRZbUAo0GOY8bYmf9sMLf70w6u/xbE2EYDFH&#43;w60ES2K906x7lyfEPe73NfAIEhHNL8DBAUfQWzQjVjYNOLqGp/WdlKA1RLAOklpIdJQ9iehsH0q6nqjeTUv47mIHUiqaM&#43;vlkCEAN3AAQH5mB/1 | 256 5a0cc03b9b76552e6ec4f4b95d761709 (ECDSA) | ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBAiAKnk2lw0GxzzqMXNsPQ1bTk35WwxCa3ED5H34T1yYMiXnRlfssJwso60D34/IM8vYXH0rznR9tHvjdN7R3hY= | 256 b79df7489da2f27630fd42d3353a808c (ED25519) |_ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEV5D6eYjySqfhW4l4IF1SZkZHxIRihnY6Mn6D8mLEW7 80/tcp open http syn-ack ttl 63 nginx 1.14.2 |_http-title: Welcome | http-methods: |_ Supported Methods: GET HEAD |_http-server-header: nginx/1.14.2 8065/tcp open unknown syn-ack ttl 63 | fingerprint-strings: | GenericLines, Help, RTSPRequest, SSLSessionReq, TerminalServerCookie: | HTTP/1.1 400 Bad Request | Content-Type: text/plain; charset=utf-8 | Connection: close | Request | GetRequest: | HTTP/1.0 200 OK | Accept-Ranges: bytes | Cache-Control: no-cache, max-age=31556926, public | Content-Length: 3108 | Content-Security-Policy: frame-ancestors &#39;self&#39;; script-src &#39;self&#39; cdn.rudderlabs.com | Content-Type: text/html; charset=utf-8 | Last-Modified: Fri, 03 Mar 2023 15:39:20 GMT | X-Frame-Options: SAMEORIGIN | X-Request-Id: rqguydjcq7fu7my6o44o7sw5pc | X-Version-Id: 5.30.0.5.30.1.57fb31b889bf81d99d8af8176d4bbaaa.false | Date: Fri, 03 Mar 2023 15:52:43 GMT | &lt;!doctype html&gt;&lt;html lang=&#34;en&#34;&gt;&lt;head&gt;&lt;meta charset=&#34;utf-8&#34;&gt;&lt;meta name=&#34;viewport&#34; content=&#34;width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0&#34;&gt;&lt;meta name=&#34;robots&#34; content=&#34;noindex, nofollow&#34;&gt;&lt;meta name=&#34;referrer&#34; content=&#34;no-referrer&#34;&gt;&lt;title&gt;Mattermost&lt;/title&gt;&lt;meta name=&#34;mobile-web-app-capable&#34; content=&#34;yes&#34;&gt;&lt;meta name=&#34;application-name&#34; content=&#34;Mattermost&#34;&gt;&lt;meta name=&#34;format-detection&#34; content=&#34;telephone=no&#34;&gt;&lt;link re | HTTPOptions: | HTTP/1.0 405 Method Not Allowed | Date: Fri, 03 Mar 2023 15:52:43 GMT |_ Content-Length: 0EnumerationAs I usually do I start with the port that I feel most comfortable with, which in this case is port 80. this is a standard page but if we go to the contact us page you will be able to find the hostname for the webserver and one subdomain.">
+
+    <link href="/css/compiled/main.css" rel="stylesheet" />
+
+
+
+  <link href="/css/custom.css" rel="stylesheet" />
+
+
+  <script>
+     
+    const defaultTheme = 'system';
+
+    const setDarkTheme = () => {
+      document.documentElement.classList.add("dark");
+      document.documentElement.style.colorScheme = "dark";
+    }
+    const setLightTheme = () => {
+      document.documentElement.classList.remove("dark");
+      document.documentElement.style.colorScheme = "light";
+    }
+
+    if ("color-theme" in localStorage) {
+      localStorage.getItem("color-theme") === "dark" ? setDarkTheme() : setLightTheme();
+    } else {
+      defaultTheme === "dark" ? setDarkTheme() : setLightTheme();
+      if (defaultTheme === "system") {
+        window.matchMedia("(prefers-color-scheme: dark)").matches ? setDarkTheme() : setLightTheme();
+      }
+    }
+  </script>
+
+  
+  </head>
+<body dir="ltr"><div class="nav-container hx:sticky hx:top-0 hx:z-20 hx:w-full hx:bg-transparent hx:print:hidden">
+  <div class="nav-container-blur hx:pointer-events-none hx:absolute hx:z-[-1] hx:h-full hx:w-full hx:bg-white hx:dark:bg-dark hx:shadow-[0_2px_4px_rgba(0,0,0,.02),0_1px_0_rgba(0,0,0,.06)] hx:contrast-more:shadow-[0_0_0_1px_#000] hx:dark:shadow-[0_-1px_0_rgba(255,255,255,.1)_inset] hx:contrast-more:dark:shadow-[0_0_0_1px_#fff]"></div>
+
+  <nav class="hx:mx-auto hx:flex hx:items-center hx:justify-end hx:gap-2 hx:h-16 hx:px-6 hx:max-w-[90rem]">
+    <a class="hx:flex hx:items-center hx:hover:opacity-75 hx:ltr:mr-auto hx:rtl:ml-auto" href="/">
+        <img class="hx:mr-2 hx:block hx:dark:hidden" src="/images/logo.svg" alt="Z4kr Security." height="20" width="20" />
+        <img class="hx:mr-2 hx:hidden hx:dark:block" src="/images/logo.svg" alt="Z4kr Security." height="20" width="20" />
+        <span class="hx:mr-2 hx:font-extrabold hx:inline hx:select-none" title="Z4kr Security.">Z4kr Security.</span>
+    </a><button type="button" aria-label="Menu" class="hamburger-menu hx:cursor-pointer hx:-mr-2 hx:rounded-sm hx:p-2 hx:active:bg-gray-400/20 hx:md:hidden"><svg height=24 fill="none" viewBox="0 0 24 24" stroke="currentColor"><g><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8H20"></path></g><g><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16H20"></path></g></svg></button>
+  </nav>
+</div>
+
+  <div class='hx:mx-auto hx:flex hx:max-w-screen-xl'>
+    <aside class="sidebar-container hx:flex hx:flex-col hx:print:hidden hx:md:top-16 hx:md:shrink-0 hx:md:w-64 hx:md:self-start hx:max-md:[transform:translate3d(0,-100%,0)] hx:md:hidden hx:xl:block">
+  
+  <div class="hx:px-4 hx:pt-4 hx:md:hidden">
+    <div class="search-wrapper hx:relative hx:md:w-64">
+  <div class="hx:relative hx:flex hx:items-center hx:text-gray-900 hx:contrast-more:text-gray-800 hx:dark:text-gray-300 hx:contrast-more:dark:text-gray-300">
+    <input
+      placeholder="Search..."
+      class="search-input hx:block hx:w-full hx:appearance-none hx:rounded-lg hx:px-3 hx:py-2 hx:transition-colors hx:text-base hx:leading-tight hx:md:text-sm hx:bg-black/[.05] hx:dark:bg-gray-50/10 hx:focus:bg-white hx:dark:focus:bg-dark hx:placeholder:text-gray-500 hx:dark:placeholder:text-gray-400 hx:contrast-more:border hx:contrast-more:border-current"
+      type="search"
+      value=""
+      spellcheck="false"
+    />
+    <kbd
+      class="hx:absolute hx:my-1.5 hx:select-none hx:ltr:right-1.5 hx:rtl:left-1.5 hx:h-5 hx:rounded-sm hx:bg-white hx:px-1.5 hx:font-mono hx:text-[10px] hx:font-medium hx:text-gray-500 hx:border hx:border-gray-200 hx:dark:border-gray-100/20 hx:dark:bg-dark/50 hx:contrast-more:border-current hx:contrast-more:text-current hx:contrast-more:dark:border-current hx:items-center hx:gap-1 hx:transition-opacity hx:pointer-events-none hx:hidden hx:sm:flex"
+    >
+      CTRL K
+    </kbd>
+  </div>
+
+  <div>
+    <ul
+      class="search-results hextra-scrollbar hx:hidden hx:border hx:border-gray-200 hx:bg-white hx:text-gray-100 hx:dark:border-neutral-800 hx:dark:bg-neutral-900 hx:absolute hx:top-full hx:z-20 hx:mt-2 hx:overflow-auto hx:overscroll-contain hx:rounded-xl hx:py-2.5 hx:shadow-xl hx:max-h-[min(calc(50vh-11rem-env(safe-area-inset-bottom)),400px)] hx:md:max-h-[min(calc(100vh-5rem-env(safe-area-inset-bottom)),400px)] hx:inset-x-0 hx:ltr:md:left-auto hx:rtl:md:right-auto hx:contrast-more:border hx:contrast-more:border-gray-900 hx:contrast-more:dark:border-gray-50 hx:w-screen hx:min-h-[100px] hx:max-w-[min(calc(100vw-2rem),calc(100%+20rem))]"
+      style="transition: max-height 0.2s ease 0s;"
+    ></ul>
+  </div>
+</div>
+
+  </div>
+  <div class="hextra-scrollbar hx:overflow-y-auto hx:overflow-x-hidden hx:p-4 hx:grow hx:md:h-[calc(100vh-var(--navbar-height)-var(--menu-height))]">
+    <ul class="hx:flex hx:flex-col hx:gap-1 hx:md:hidden">
+      
+      
+          <li class="open"><a
+    class="hx:flex hx:items-center hx:justify-between hx:gap-2 hx:cursor-pointer hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [word-break:break-word]
+      hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:contrast-more:border hx:contrast-more:border-transparent hx:contrast-more:text-gray-900 hx:contrast-more:hover:border-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:dark:text-gray-50 hx:contrast-more:dark:hover:border-gray-50"
+    href="/TEST/"
+    
+  >TESTs
+        <span class="hextra-sidebar-collapsible-button"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" class="hx:h-[18px] hx:min-w-[18px] hx:rounded-xs hx:p-0.5 hx:hover:bg-gray-800/5 hx:dark:hover:bg-gray-100/5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" class="hx:origin-center hx:transition-transform hx:rtl:-rotate-180"></path></svg></span>
+    </a><div class="hx:ltr:pr-0 hx:overflow-hidden">
+        <ul class='hx:relative hx:flex hx:flex-col hx:gap-1 hx:before:absolute hx:before:inset-y-1 hx:before:w-px hx:before:bg-gray-200 hx:before:content-[""] hx:ltr:ml-3 hx:ltr:pl-3 hx:ltr:before:left-0 hx:rtl:mr-3 hx:rtl:pr-3 hx:rtl:before:right-0 hx:dark:before:bg-neutral-800'><li class="hx:flex hx:flex-col "><a
+    class="hx:flex hx:items-center hx:justify-between hx:gap-2 hx:cursor-pointer hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [word-break:break-word]
+      hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:contrast-more:border hx:contrast-more:border-transparent hx:contrast-more:text-gray-900 hx:contrast-more:hover:border-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:dark:text-gray-50 hx:contrast-more:dark:hover:border-gray-50"
+    href="/TEST/Easy/Sea-HTB/"
+    
+  >Sea - Hack The Box
+    </a>
+              
+            </li><li class="hx:flex hx:flex-col "><a
+    class="hx:flex hx:items-center hx:justify-between hx:gap-2 hx:cursor-pointer hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [word-break:break-word]
+      hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:contrast-more:border hx:contrast-more:border-transparent hx:contrast-more:text-gray-900 hx:contrast-more:hover:border-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:dark:text-gray-50 hx:contrast-more:dark:hover:border-gray-50"
+    href="/TEST/Easy/Analytics-HTB/"
+    
+  >Analytics - Hack The Box
+    </a>
+              
+            </li><li class="hx:flex hx:flex-col open"><a
+    class="hx:flex hx:items-center hx:justify-between hx:gap-2 hx:cursor-pointer hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [word-break:break-word]
+      sidebar-active-item hx:bg-primary-100 hx:font-semibold hx:text-primary-800 hx:contrast-more:border hx:contrast-more:border-primary-500 hx:dark:bg-primary-400/10 hx:dark:text-primary-600 hx:contrast-more:dark:border-primary-500"
+    href="/TEST/Easy/2024-12-12-Delivery-HTB/"
+    
+  >Delivery - Hack The Box
+    </a>
+  
+    <ul class='hx:flex hx:flex-col hx:gap-1 hx:relative hx:before:absolute hx:before:inset-y-1 hx:before:w-px hx:before:bg-gray-200 hx:before:content-[""] hx:dark:before:bg-neutral-800 hx:ltr:pl-3 hx:ltr:before:left-0 hx:rtl:pr-3 hx:rtl:before:right-0 hx:ltr:ml-3 hx:rtl:mr-3'></ul>
+  
+              
+            </li><li class="hx:flex hx:flex-col "><a
+    class="hx:flex hx:items-center hx:justify-between hx:gap-2 hx:cursor-pointer hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [word-break:break-word]
+      hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:contrast-more:border hx:contrast-more:border-transparent hx:contrast-more:text-gray-900 hx:contrast-more:hover:border-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:dark:text-gray-50 hx:contrast-more:dark:hover:border-gray-50"
+    href="/TEST/Medium/Survellance-HTB/"
+    
+  >Survellance - Hack The Box
+    </a>
+              
+            </li><li class="hx:flex hx:flex-col "><a
+    class="hx:flex hx:items-center hx:justify-between hx:gap-2 hx:cursor-pointer hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [word-break:break-word]
+      hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:contrast-more:border hx:contrast-more:border-transparent hx:contrast-more:text-gray-900 hx:contrast-more:hover:border-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:dark:text-gray-50 hx:contrast-more:dark:hover:border-gray-50"
+    href="/TEST/about/"
+    
+  >About
+    </a>
+              
+            </li></ul>
+      </div></li>
+          <li class=""><a
+    class="hx:flex hx:items-center hx:justify-between hx:gap-2 hx:cursor-pointer hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [word-break:break-word]
+      hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:contrast-more:border hx:contrast-more:border-transparent hx:contrast-more:text-gray-900 hx:contrast-more:hover:border-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:dark:text-gray-50 hx:contrast-more:dark:hover:border-gray-50"
+    href="/Projects/"
+    
+  >Projects
+        <span class="hextra-sidebar-collapsible-button"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" class="hx:h-[18px] hx:min-w-[18px] hx:rounded-xs hx:p-0.5 hx:hover:bg-gray-800/5 hx:dark:hover:bg-gray-100/5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" class="hx:origin-center hx:transition-transform hx:rtl:-rotate-180"></path></svg></span>
+    </a><div class="hx:ltr:pr-0 hx:overflow-hidden">
+        <ul class='hx:relative hx:flex hx:flex-col hx:gap-1 hx:before:absolute hx:before:inset-y-1 hx:before:w-px hx:before:bg-gray-200 hx:before:content-[""] hx:ltr:ml-3 hx:ltr:pl-3 hx:ltr:before:left-0 hx:rtl:mr-3 hx:rtl:pr-3 hx:rtl:before:right-0 hx:dark:before:bg-neutral-800'><li class="hx:flex hx:flex-col "><a
+    class="hx:flex hx:items-center hx:justify-between hx:gap-2 hx:cursor-pointer hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [word-break:break-word]
+      hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:contrast-more:border hx:contrast-more:border-transparent hx:contrast-more:text-gray-900 hx:contrast-more:hover:border-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:dark:text-gray-50 hx:contrast-more:dark:hover:border-gray-50"
+    href="/Projects/2024-12-10-initHACK/"
+    
+  >initHACK: Automate Pentesting Folder Setup and Nmap Scans.
+    </a>
+              
+            </li></ul>
+      </div></li>
+    </ul>
+
+    <div class="hx:max-xl:hidden hx:h-0 hx:w-64 hx:shrink-0"></div></div>
+  
+  
+    <div class="hx:md:hidden  hx:sticky hx:bottom-0 hx:max-h-(--menu-height) hx:bg-white hx:dark:bg-dark hx:mx-4 hx:py-4 hx:shadow-[0_-12px_16px_#fff] hx:flex hx:items-center hx:gap-2 hx:border-gray-200 hx:dark:border-neutral-800 hx:dark:shadow-[0_-12px_16px_#111] hx:contrast-more:border-neutral-400 hx:contrast-more:shadow-none hx:contrast-more:dark:shadow-none hx:border-t" data-toggle-animation="show"><div class="hx:flex hx:grow hx:flex-col"><button
+  title="Change theme"
+  data-theme="light"
+  class="theme-toggle hx:cursor-pointer hx:group hx:h-7 hx:rounded-md hx:px-2 hx:text-left hx:text-xs hx:font-medium hx:text-gray-600 hx:transition-colors hx:dark:text-gray-400 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50"
+  type="button"
+  aria-label="Change theme"
+>
+  <div class="hx:flex hx:items-center hx:gap-2 hx:capitalize"><svg height=12 class="hx:group-data-[theme=light]:hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg><span class="hx:group-data-[theme=light]:hidden">Light</span><svg height=12 class="hx:group-data-[theme=dark]:hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg><span class="hx:group-data-[theme=dark]:hidden">Dark</span></div>
+</button>
+</div></div></aside>
+    
+<nav class="hextra-toc hx:order-last hx:hidden hx:w-64 hx:shrink-0 hx:xl:block hx:print:hidden hx:px-4" aria-label="table of contents">
+    <div class="hextra-scrollbar hx:sticky hx:top-16 hx:overflow-y-auto hx:pr-4 hx:pt-6 hx:text-sm [hyphens:auto] hx:max-h-[calc(100vh-var(--navbar-height)-env(safe-area-inset-bottom))] hx:ltr:-mr-4 hx:rtl:-ml-4"><p class="hx:mb-4 hx:font-semibold hx:tracking-tight">On this page</p><ul></ul><ul></ul><ul></ul>
+      <div class="hx:mt-8 hx:border-t hx:bg-white hx:pt-8 hx:shadow-[0_-12px_16px_white] hx:dark:bg-dark hx:dark:shadow-[0_-12px_16px_#111] hx:sticky hx:bottom-0 hx:flex hx:flex-col hx:items-start hx:gap-2 hx:pb-8 hx:border-gray-200 hx:dark:border-neutral-800 hx:contrast-more:border-t hx:contrast-more:border-neutral-400 hx:contrast-more:shadow-none hx:contrast-more:dark:border-neutral-400">
+        <button aria-hidden="true" id="backToTop" onClick="scrollUp();" class="hx:cursor-pointer hx:transition-all hx:duration-75 hx:opacity-0 hx:text-xs hx:font-medium hx:text-gray-500 hx:hover:text-gray-900 hx:dark:text-gray-400 hx:dark:hover:text-gray-100 hx:contrast-more:text-gray-800 hx:contrast-more:dark:text-gray-50">
+          <span>Scroll to top</span>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="hx:inline hx:ltr:ml-1 hx:rtl:mr-1 hx:h-3.5 hx:w-3.5 hx:rounded-full hx:border hx:border-gray-500 hx:hover:border-gray-900 hx:dark:border-gray-400 hx:dark:hover:border-gray-100 hx:contrast-more:border-gray-800 hx:contrast-more:dark:border-gray-50">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+
+    <article class="hx:w-full hx:break-words hx:flex hx:min-h-[calc(100vh-var(--navbar-height))] hx:min-w-0 hx:justify-center hx:pb-8 hx:pr-[calc(env(safe-area-inset-right)-1.5rem)]">
+      <main class="hx:w-full hx:min-w-0 hx:max-w-6xl hx:px-6 hx:pt-4 hx:md:px-12">
+        <br class="hx:mt-1.5 hx:text-sm" />
+        <h1 class="hx:text-center hx:mt-2 hx:text-4xl hx:font-bold hx:tracking-tight hx:text-slate-900 hx:dark:text-slate-100">Delivery - Hack The Box</h1>
+        <div class="hx:mb-16"></div>
+        <div class="content">
+          <p><img src="/assets/images/HTB/Delivery/Delivery-Logo.png" alt=""  loading="lazy" /></p>
+<h1>Port Scan</h1><p>We start with the NMAP scan:</p>
+<ul>
+<li>nmap -sS -sV -sC -p- -vvv -oA nmap/allPorts 10.10.10.222</li>
+</ul>
+<div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+
+<div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># Nmap 7.93 scan initiated Fri Mar  3 10:50:32 2023 as: nmap -sS -sV -sC -p- -vvv -oA nmap/allPorts 10.10.10.222</span>
+</span></span><span style="display:flex;"><span>Nmap scan report <span style="color:#66d9ef">for</span> <span style="color:#ae81ff">10.10.10.222</span>
+</span></span><span style="display:flex;"><span>Host <span style="color:#f92672">is</span> up, received echo<span style="color:#f92672">-</span>reply ttl <span style="color:#ae81ff">63</span> (<span style="color:#ae81ff">0.047</span>s latency)<span style="color:#f92672">.</span>
+</span></span><span style="display:flex;"><span>Scanned at <span style="color:#ae81ff">2023</span><span style="color:#f92672">-</span><span style="color:#ae81ff">03</span><span style="color:#f92672">-</span><span style="color:#ae81ff">03</span> <span style="color:#ae81ff">10</span>:<span style="color:#ae81ff">50</span>:<span style="color:#ae81ff">32</span> EST <span style="color:#66d9ef">for</span> <span style="color:#ae81ff">216</span>s
+</span></span><span style="display:flex;"><span>Not shown: <span style="color:#ae81ff">65532</span> closed tcp ports (reset)
+</span></span><span style="display:flex;"><span>PORT     STATE SERVICE REASON         VERSION
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">22</span><span style="color:#f92672">/</span>tcp   open  ssh     syn<span style="color:#f92672">-</span>ack ttl <span style="color:#ae81ff">63</span> OpenSSH <span style="color:#ae81ff">7.9</span>p1 Debian <span style="color:#ae81ff">10</span><span style="color:#f92672">+</span>deb10u2 (protocol <span style="color:#ae81ff">2.0</span>)
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span> ssh<span style="color:#f92672">-</span>hostkey: 
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span>   <span style="color:#ae81ff">2048</span> <span style="color:#ae81ff">9</span>c40fa859b01acac0ebc0c19518aee27 (RSA)
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span> ssh<span style="color:#f92672">-</span>rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCq549E025Q9FR27LDR6WZRQ52ikKjKUQLmE9ndEKjB0i1qOoL<span style="color:#f92672">+</span>WzkvqTdqEU6fFW6AqUIdSEd7GMNSMOk66otFgSoerK6MmH5IZjy4JqMoNVPDdWfmEiagBlG3H7IZ7yAO8gcg0RRrIQjE7XTMV09GmxEUtjojoLoqudUvbUi8COHCO6baVmyjZRlXRCQ6qTKIxRZbUAo0GOY8bYmf9sMLf70w6u<span style="color:#f92672">/</span>xbE2EYDFH<span style="color:#f92672">+</span>w60ES2K906x7lyfEPe73NfAIEhHNL8DBAUfQWzQjVjYNOLqGp<span style="color:#f92672">/</span>WdlKA1RLAOklpIdJQ9iehsH0q6nqjeTUv47mIHUiqaM<span style="color:#f92672">+</span>vlkCEAN3AAQH5mB<span style="color:#f92672">/</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span>   <span style="color:#ae81ff">256</span> <span style="color:#ae81ff">5</span>a0cc03b9b76552e6ec4f4b95d761709 (ECDSA)
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span> ecdsa<span style="color:#f92672">-</span>sha2<span style="color:#f92672">-</span>nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBAiAKnk2lw0GxzzqMXNsPQ1bTk35WwxCa3ED5H34T1yYMiXnRlfssJwso60D34<span style="color:#f92672">/</span>IM8vYXH0rznR9tHvjdN7R3hY<span style="color:#f92672">=</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span>   <span style="color:#ae81ff">256</span> b79df7489da2f27630fd42d3353a808c (ED25519)
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span>_ssh<span style="color:#f92672">-</span>ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEV5D6eYjySqfhW4l4IF1SZkZHxIRihnY6Mn6D8mLEW7
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">80</span><span style="color:#f92672">/</span>tcp   open  http    syn<span style="color:#f92672">-</span>ack ttl <span style="color:#ae81ff">63</span> nginx <span style="color:#ae81ff">1.14.2</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span>_http<span style="color:#f92672">-</span>title: Welcome
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span> http<span style="color:#f92672">-</span>methods: 
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span>_  Supported Methods: GET HEAD
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span>_http<span style="color:#f92672">-</span>server<span style="color:#f92672">-</span>header: nginx<span style="color:#f92672">/</span><span style="color:#ae81ff">1.14.2</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">8065</span><span style="color:#f92672">/</span>tcp open  unknown syn<span style="color:#f92672">-</span>ack ttl <span style="color:#ae81ff">63</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span> fingerprint<span style="color:#f92672">-</span>strings: 
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span>   GenericLines, Help, RTSPRequest, SSLSessionReq, TerminalServerCookie: 
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span>     HTTP<span style="color:#f92672">/</span><span style="color:#ae81ff">1.1</span> <span style="color:#ae81ff">400</span> Bad Request
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span>     Content<span style="color:#f92672">-</span>Type: text<span style="color:#f92672">/</span>plain; charset<span style="color:#f92672">=</span>utf<span style="color:#f92672">-</span><span style="color:#ae81ff">8</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span>     Connection: close
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span>     Request
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span>   GetRequest: 
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span>     HTTP<span style="color:#f92672">/</span><span style="color:#ae81ff">1.0</span> <span style="color:#ae81ff">200</span> OK
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span>     Accept<span style="color:#f92672">-</span>Ranges: bytes
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span>     Cache<span style="color:#f92672">-</span>Control: no<span style="color:#f92672">-</span>cache, max<span style="color:#f92672">-</span>age<span style="color:#f92672">=</span><span style="color:#ae81ff">31556926</span>, public
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span>     Content<span style="color:#f92672">-</span>Length: <span style="color:#ae81ff">3108</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span>     Content<span style="color:#f92672">-</span>Security<span style="color:#f92672">-</span>Policy: frame<span style="color:#f92672">-</span>ancestors <span style="color:#e6db74">&#39;self&#39;</span>; script<span style="color:#f92672">-</span>src <span style="color:#e6db74">&#39;self&#39;</span> cdn<span style="color:#f92672">.</span>rudderlabs<span style="color:#f92672">.</span>com
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span>     Content<span style="color:#f92672">-</span>Type: text<span style="color:#f92672">/</span>html; charset<span style="color:#f92672">=</span>utf<span style="color:#f92672">-</span><span style="color:#ae81ff">8</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span>     Last<span style="color:#f92672">-</span>Modified: Fri, <span style="color:#ae81ff">03</span> Mar <span style="color:#ae81ff">2023</span> <span style="color:#ae81ff">15</span>:<span style="color:#ae81ff">39</span>:<span style="color:#ae81ff">20</span> GMT
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span>     X<span style="color:#f92672">-</span>Frame<span style="color:#f92672">-</span>Options: SAMEORIGIN
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span>     X<span style="color:#f92672">-</span>Request<span style="color:#f92672">-</span>Id: rqguydjcq7fu7my6o44o7sw5pc
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span>     X<span style="color:#f92672">-</span>Version<span style="color:#f92672">-</span>Id: <span style="color:#ae81ff">5.30.0.5.30.1.57</span>fb31b889bf81d99d8af8176d4bbaaa<span style="color:#f92672">.</span>false
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span>     Date: Fri, <span style="color:#ae81ff">03</span> Mar <span style="color:#ae81ff">2023</span> <span style="color:#ae81ff">15</span>:<span style="color:#ae81ff">52</span>:<span style="color:#ae81ff">43</span> GMT
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span>     <span style="color:#f92672">&lt;</span><span style="color:#960050;background-color:#1e0010">!</span>doctype html<span style="color:#f92672">&gt;&lt;</span>html lang<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;en&#34;</span><span style="color:#f92672">&gt;&lt;</span>head<span style="color:#f92672">&gt;&lt;</span>meta charset<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;utf-8&#34;</span><span style="color:#f92672">&gt;&lt;</span>meta name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;viewport&#34;</span> content<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0&#34;</span><span style="color:#f92672">&gt;&lt;</span>meta name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;robots&#34;</span> content<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;noindex, nofollow&#34;</span><span style="color:#f92672">&gt;&lt;</span>meta name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;referrer&#34;</span> content<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;no-referrer&#34;</span><span style="color:#f92672">&gt;&lt;</span>title<span style="color:#f92672">&gt;</span>Mattermost<span style="color:#f92672">&lt;/</span>title<span style="color:#f92672">&gt;&lt;</span>meta name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;mobile-web-app-capable&#34;</span> content<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;yes&#34;</span><span style="color:#f92672">&gt;&lt;</span>meta name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;application-name&#34;</span> content<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;Mattermost&#34;</span><span style="color:#f92672">&gt;&lt;</span>meta name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;format-detection&#34;</span> content<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;telephone=no&#34;</span><span style="color:#f92672">&gt;&lt;</span>link re
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span>   HTTPOptions: 
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span>     HTTP<span style="color:#f92672">/</span><span style="color:#ae81ff">1.0</span> <span style="color:#ae81ff">405</span> Method Not Allowed
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span>     Date: Fri, <span style="color:#ae81ff">03</span> Mar <span style="color:#ae81ff">2023</span> <span style="color:#ae81ff">15</span>:<span style="color:#ae81ff">52</span>:<span style="color:#ae81ff">43</span> GMT
+</span></span><span style="display:flex;"><span><span style="color:#f92672">|</span>_    Content<span style="color:#f92672">-</span>Length: <span style="color:#ae81ff">0</span></span></span></code></pre></div></div><div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+  <button
+    class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+    title="Copy code"
+  >
+    <div class="copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"></div>
+    <div class="success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"></div>
+  </button>
+</div>
+</div>
+<h1>Enumeration</h1><p>As I usually do I start with the port that I feel most comfortable with, which in this case is port 80. this is a standard page but if we go to the <strong>contact us</strong> page you will be able to find the hostname for the webserver and one subdomain.
+<img src="/assets/images/HTB/Delivery/Delivery-1.png" alt=""  loading="lazy" /></p>
+<p><img src="/assets/images/HTB/Delivery/Delivery-2.png" alt=""  loading="lazy" /></p>
+<p>From this, we see that we need a <strong>@delivery.htb</strong> email address to access the <strong>Mattermost</strong> server that is hosted on port 8065. To be able to access these two pages we need to add them to the /etc/hosts file:</p>
+<ul>
+<li><a href="http://helpdesk.delivery.htb" target="_blank" rel="noopener">http://helpdesk.delivery.htb</a></li>
+<li><a href="http://delivery.htb" target="_blank" rel="noopener">http://delivery.htb</a></li>
+</ul>
+<p>moving into the new pages we find  on <a href="http://helpdesk.delivery.htb/index.php" target="_blank" rel="noopener">http://helpdesk.delivery.htb/index.php</a> that it is hosting a Support ticketing system.</p>
+<p><img src="/assets/images/HTB/Delivery/Delivery-3.png" alt=""  loading="lazy" /></p>
+<p>Since we don&rsquo;t have any type of credentials yet or any ticket number we proceed to create a new ticket (just filling in the mandatory fields).</p>
+<p><img src="/assets/images/HTB/Delivery/Delivery-4.png" alt=""  loading="lazy" /></p>
+<p>After creating it says that if we want to add more information to the ticket we should send an email to <strong><a href="mailto:6153164@delivery.htb" >6153164@delivery.htb</a></strong>.</p>
+<p><img src="/assets/images/HTB/Delivery/Delivery-5.png" alt=""  loading="lazy" /></p>
+<p>If we try to check the ticket or update it, we are able to change Ticket details (such as the ticket name or add more comments to it.) but we are not able to do much more from here.</p>
+<p>Now looking for other alternatives, I proceed to check the page that&rsquo;s hosting the Mattermost Service. This is an online chat with file sharing, search, and integrations. Also created as an internal chat for organizations and companies, it is also considered <strong>a viable alternative to SLACK</strong>. If you want to read more about Mattermost please refer to their <a href="https://docs.mattermost.com/about/product.html#the-mattermost-platform" target="_blank" rel="noopener">documentation</a>.</p>
+<p>Moving on, I went to <em><a href="http://Delivery.htb:8065" target="_blank" rel="noopener">http://Delivery.htb:8065</a></em> and I was able to find mattermost&rsquo;s login page.</p>
+<p><img src="/assets/images/HTB/Delivery/Delivery-6.png" alt=""  loading="lazy" /></p>
+<p>Until this point, I don&rsquo;t have any credentials right now. So I opt for creating a new account but if we recall from earlier enumeration we need a <strong>@Delivery.htb</strong> email to be able to access the chat server.</p>
+<p>When we try to complete the process with a random email (<a href="mailto:winzacar@yopmail.com" >winzacar@yopmail.com</a>) it says that it will send be a confirmation email to validate the user. Our problem here is that the boxes from HTB are not connected to the internet, thus we can not receive any type of &ldquo;external&rdquo; emails.</p>
+<p>If we recall from our ticket registration (on the helpdesk page) we can send emails to update our ticket. My theory in this moment was to register with <strong><a href="mailto:6153164@delivery.htb" >6153164@delivery.htb</a></strong> as our email, so the confirmation email will update our ticket and I will be able to verify my registration to mattermost</p>
+<p><img src="/assets/images/HTB/Delivery/Delivery-7.png" alt=""  loading="lazy" /></p>
+<p><img src="/assets/images/HTB/Delivery/Delivery-8.png" alt=""  loading="lazy" /></p>
+<p>Now, We have to go back to <em><a href="http://helpdesk.delivery.htb" target="_blank" rel="noopener">http://helpdesk.delivery.htb</a></em> and check the ticket status, for this I need to  &ldquo;login&rdquo; with our email and the ticket number and we are able to see that comments has been updated with the mattermost email confirmation file</p>
+<p><img src="/assets/images/HTB/Delivery/Delivery-9.png" alt=""  loading="lazy" /></p>
+<p>I says im registered successfully and if we want to confirm/verify the email
+by going to the link we can see that our email has been verified and we can now login into Mattermost</p>
+<p><img src="/assets/images/HTB/Delivery/Delivery-10.png" alt=""  loading="lazy" /></p>
+<p>after loggin in we are prompted to select a team to join, in our case we only have one option which is &ldquo;internal&rdquo;</p>
+<p><img src="/assets/images/HTB/Delivery/Delivery-11.png" alt=""  loading="lazy" /></p>
+<p>After selecting the team we are added to a chat and we can see some credentials that are being reused in other places as well.</p>
+<p><img src="/assets/images/HTB/Delivery/Delivery-12.png" alt=""  loading="lazy" /></p>
+<ul>
+<li><strong>user =</strong> maildeliverer</li>
+<li><strong>Pass =</strong> Youve_G0t_Mail!</li>
+</ul>
+<p>Then, I tested the credentials that I got with crackmapexec to check if they were valid.</p>
+<div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+
+<div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>crackmapexec ssh 10.10.10.222 -u maildeliverer  -p Youve_G0t_Mail!</span></span></code></pre></div></div><div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+  <button
+    class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+    title="Copy code"
+  >
+    <div class="copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"></div>
+    <div class="success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"></div>
+  </button>
+</div>
+</div>
+<p>After confirming that they are valid I just proceed to log in to the machine with ssh.</p>
+<div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+
+<div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>ssh maildeliverer@10.10.10.222</span></span></code></pre></div></div><div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+  <button
+    class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+    title="Copy code"
+  >
+    <div class="copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"></div>
+    <div class="success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"></div>
+  </button>
+</div>
+</div>
+<p><img src="/assets/images/HTB/Delivery/Delivery-13.png" alt=""  loading="lazy" /></p>
+<p>and here we are able to get <em><strong>flag.txt</strong></em>.</p>
+<p><img src="/assets/images/HTB/Delivery/Delivery-14.png" alt=""  loading="lazy" /></p>
+<h1>Privilege Escalation</h1><p>Noving on with the privilege escalation I decided to check which users have the ability to execute commands from shell and we were able to find 3.</p>
+<div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+
+<div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>cat /etc/passwd | grep sh$</span></span></code></pre></div></div><div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+  <button
+    class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+    title="Copy code"
+  >
+    <div class="copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"></div>
+    <div class="success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"></div>
+  </button>
+</div>
+</div>
+<p><img src="/assets/images/HTB/Delivery/Delivery-15.png" alt=""  loading="lazy" /></p>
+<p>As we are logged in as mailserver my first idea after finding the users was to check mattermost folder. For that, I just ran the following command and I was able to find it in the <strong>opt</strong> folder.</p>
+<div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+
+<div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>find / -user mattermost 2&gt;/dev/null | grep -v -E <span style="color:#e6db74">&#39;sys|proc|run&#39;</span></span></span></code></pre></div></div><div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+  <button
+    class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+    title="Copy code"
+  >
+    <div class="copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"></div>
+    <div class="success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"></div>
+  </button>
+</div>
+</div>
+<p>After looking into the files contained in that folder, I&rsquo;m able to find inside de config folder a config.json file that contains some credentials to log in to the SQL server.</p>
+<p><img src="/assets/images/HTB/Delivery/Delivery-16.png" alt=""  loading="lazy" /></p>
+<p>I connect to the mysql DB with the credentials. For extra explanation on how to connect to the database please reffer the following <a href="https://www.jetbrains.com/help/datagrip/how-to-connect-to-mysql-with-unix-sockets.html#ec6a30bd" target="_blank" rel="noopener">Link</a></p>
+<div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+
+<div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span> mysql -h localhost -u mmuser -p 
+</span></span><span style="display:flex;"><span> enter password: Crack_The_MM_Admin_PW</span></span></code></pre></div></div><div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+  <button
+    class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+    title="Copy code"
+  >
+    <div class="copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"></div>
+    <div class="success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"></div>
+  </button>
+</div>
+</div>
+<ul>
+<li><strong>-h</strong> &ndash;&gt; hostname</li>
+<li><strong>-u</strong> &ndash;&gt; username</li>
+<li><strong>-p</strong> &ndash;&gt; password</li>
+</ul>
+<p>With the help of netstat (or linpeas), I was able to see that port 3306 was listening to the localhost.
+<img src="/assets/images/HTB/Delivery/Delivery-17.png" alt=""  loading="lazy" /></p>
+<p>Then, after been logged in we are able to find the <em>Mattermost DB</em>.</p>
+<div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+
+<div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">show</span> databases</span></span></code></pre></div></div><div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+  <button
+    class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+    title="Copy code"
+  >
+    <div class="copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"></div>
+    <div class="success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"></div>
+  </button>
+</div>
+</div>
+<p><img src="/assets/images/HTB/Delivery/Delivery-18.png" alt=""  loading="lazy" /></p>
+<div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+
+<div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span>use mattermost;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">show</span> tables;</span></span></code></pre></div></div><div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+  <button
+    class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+    title="Copy code"
+  >
+    <div class="copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"></div>
+    <div class="success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"></div>
+  </button>
+</div>
+</div>
+<p><img src="/assets/images/HTB/Delivery/Delivery-19.png" alt=""  loading="lazy" /></p>
+<p>Travesing the data Im able to find some <em>usernames</em> and <em>passwords</em> on the table &ldquo;Users&rdquo;</p>
+<div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+
+<div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">SELECT</span> Username, Password,EmailVerified <span style="color:#66d9ef">FROM</span> Users;</span></span></code></pre></div></div><div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+  <button
+    class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+    title="Copy code"
+  >
+    <div class="copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"></div>
+    <div class="success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"></div>
+  </button>
+</div>
+</div>
+<p><img src="/assets/images/HTB/Delivery/Delivery-20.png" alt=""  loading="lazy" /></p>
+<p>From the following query I was able to find root hash. To identify the type of the hash that you have thanks to hashid. To find more on how to <a href="https://miloserdov.org/?p=1254" target="_blank" rel="noopener">identify Hashes</a></p>
+<div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+
+<div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>hashid -m <span style="color:#e6db74">&#39;$2a$10$VM6EeymRxJ29r8Wjkr8Dtev0O.1STWb4.4ScG.anuu7v0EFJwgjjO&#39;</span></span></span></code></pre></div></div><div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+  <button
+    class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+    title="Copy code"
+  >
+    <div class="copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"></div>
+    <div class="success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"></div>
+  </button>
+</div>
+</div>
+<p><img src="/assets/images/HTB/Delivery/Delivery-21.png" alt=""  loading="lazy" /></p>
+<p>Now as we read on the mattermost chat server, I need to create some variants (add some rules) of the password <strong>PleaseSubscribe</strong> to crack the hash that we got. To learn more about learning how to add rules to an existent password please reffer to the following <a href="https://www.youtube.com/watch?v=SAvo_h7WSUc" target="_blank" rel="noopener">link</a></p>
+<div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+
+<div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>hashcat --force pass.txt  -r /usr/share/hashcat/rules/best64.rule --stdout</span></span></code></pre></div></div><div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+  <button
+    class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+    title="Copy code"
+  >
+    <div class="copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"></div>
+    <div class="success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"></div>
+  </button>
+</div>
+</div>
+<p><img src="/assets/images/HTB/Delivery/Delivery-22.png" alt=""  loading="lazy" /></p>
+<p>With the new dictionary created we are able to crack the password with the help of hashcat</p>
+<div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+
+<div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>hashcat -m <span style="color:#ae81ff">3200</span> hash_root dict.txt</span></span></code></pre></div></div><div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+  <button
+    class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+    title="Copy code"
+  >
+    <div class="copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"></div>
+    <div class="success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"></div>
+  </button>
+</div>
+</div>
+<p><img src="/assets/images/HTB/Delivery/Delivery-23.png" alt=""  loading="lazy" /></p>
+<p>Finally, I just need to login as root with the cracked password and we are able to find the <strong>root.txt</strong> flag</p>
+<div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+
+<div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>ssh root@10.10.10.222</span></span></code></pre></div></div><div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+  <button
+    class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+    title="Copy code"
+  >
+    <div class="copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"></div>
+    <div class="success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"></div>
+  </button>
+</div>
+</div>
+<p><img src="/assets/images/HTB/Delivery/Delivery-24.png" alt=""  loading="lazy" /></p>
+
+        </div>
+        <div class="hx:mt-16"></div>
+        
+      </main>
+    </article>
+  </div>
+
+      <footer class="hextra-footer hx:bg-gray-100 hx:pb-[env(safe-area-inset-bottom)] hx:dark:bg-neutral-900 hx:print:bg-transparent"><div class="hx:mx-auto hx:flex hx:gap-2 hx:py-2 hx:px-4 hx:max-w-screen-xl"><button
+  title="Change theme"
+  data-theme="light"
+  class="theme-toggle hx:cursor-pointer hx:group hx:h-7 hx:rounded-md hx:px-2 hx:text-left hx:text-xs hx:font-medium hx:text-gray-600 hx:transition-colors hx:dark:text-gray-400 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50"
+  type="button"
+  aria-label="Change theme"
+>
+  <div class="hx:flex hx:items-center hx:gap-2 hx:capitalize"><svg height=12 class="hx:group-data-[theme=light]:hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg><span class="hx:group-data-[theme=light]:hidden">Light</span><svg height=12 class="hx:group-data-[theme=dark]:hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg><span class="hx:group-data-[theme=dark]:hidden">Dark</span></div>
+</button>
+</div><hr class="hx:border-gray-200 hx:dark:border-neutral-800" /><div
+      class="hextra-custom-footer hx:max-w-screen-xl hx:mx-auto hx:pl-[max(env(safe-area-inset-left),1.5rem)] hx:pr-[max(env(safe-area-inset-right),1.5rem)] hx:text-gray-600 hx:dark:text-gray-400"
+    ></div><div
+        class="hx:max-w-screen-xl hx:mx-auto hx:flex hx:justify-center hx:py-12 hx:pl-[max(env(safe-area-inset-left),1.5rem)] hx:pr-[max(env(safe-area-inset-right),1.5rem)] hx:text-gray-600 hx:dark:text-gray-400 hx:md:justify-start"
+      >
+        <div class="hx:flex hx:w-full hx:flex-col hx:items-center hx:sm:items-start"><div class="hx:font-semibold"><a class="hx:flex hx:text-sm hx:items-center hx:gap-1 hx:text-current" target="_blank" rel="noopener noreferrer" title="Hextra GitHub Homepage" href="https://github.com/imfing/hextra">
+    <span>Powered by Hextra<svg height=1em class="hx:inline-block hx:ltr:ml-1 hx:rtl:mr-1 hx:align-[-2.5px]" viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="m 105.50024,22.224647 c -9.59169,-5.537563 -21.40871,-5.537563 -31.000093,0 L 39.054693,42.689119 C 29.463353,48.226675 23.55484,58.460531 23.55484,69.535642 v 40.928918 c 0,11.07542 5.908513,21.3092 15.499853,26.84652 l 35.445453,20.46446 c 9.591313,5.53732 21.408404,5.53732 31.000094,0 l 35.44507,-20.46446 c 9.59131,-5.53732 15.49985,-15.7711 15.49985,-26.84652 V 69.535642 c 0,-11.075111 -5.90854,-21.308967 -15.49985,-26.846523 z M 34.112797,85.737639 c -1.384445,2.397827 -1.384445,5.352099 0,7.749927 l 24.781554,42.922974 c 1.38437,2.39783 3.942853,3.87496 6.711592,3.87496 h 49.563107 c 2.76905,0 5.3273,-1.47713 6.71144,-3.87496 l 24.78194,-42.922974 c 1.38414,-2.397828 1.38414,-5.3521 0,-7.749927 L 121.88049,42.814746 c -1.38414,-2.397828 -3.94239,-3.874964 -6.71144,-3.874964 H 65.605944 c -2.768739,0 -5.327223,1.477059 -6.711592,3.874964 z" style="stroke-width:0.774993" /></svg></span>
+  </a></div></div>
+      </div></footer>
+    
+    <script defer src="/js/main.js" integrity=""></script>
+<script defer src="/js/flexsearch.9f5b5908f93ae86f1ecd4b043b799f580c2d1654e703dd9357d568ac41b2547a.js" integrity="sha256-n1tZCPk66G8ezUsEO3mfWAwtFlTnA92TV9VorEGyVHo=" crossorigin="anonymous"></script>
+        <script defer src="/en.search.js" integrity=""></script>
+  </body>
+</html>
