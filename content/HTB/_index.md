@@ -10,6 +10,7 @@ width: wide
 #show the content of the HTB directory 
 layout: list
 ## This will show all the files (Including Easy, Medium, Hard machines)
+draft: false
 ---
 
 

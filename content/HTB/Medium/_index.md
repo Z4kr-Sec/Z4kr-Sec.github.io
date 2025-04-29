@@ -2,7 +2,7 @@
 title: "Medium"
 date: 2025-04-27T23:09:51-04:00
 weight: 2
-draft: true 
+draft: false 
 ---
 {{< figure
   src="/assets/images/HTB/medium.jpg"
