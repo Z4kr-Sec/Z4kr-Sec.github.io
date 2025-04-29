@@ -14,13 +14,13 @@ Hack. Learn. Evolve.
 
 Hello and welcome to *Z4kr Security!*
 
-I'm thrilled to open up my vault of hacking knowledge. Here, you'll discover comprehensive Hack The Box (HTB) write-ups and a wealth of pentesting notes that I've carefully documented over the years. My goal is to make learning and exploring this fascinating world a bit easier for everyone!
+I'm thrilled to open up my vault of hacking knowledge. Here, you'll discover comprehensive Hack The Box (HTB) write-ups and a wealth of pentesting notes that I've carefully documented over the years. My goal, is to make learning and exploring this fascinating world a bit easier for everyone!
 
 
 - Find all the write ups on -->  **[HTB WriteUps](/HTB/)**
 - Find all my notes at --> **[Pentesting Notes](/Pentest-Notes/)**
 
-## Latest Content.
+## Latest Content. 
 
 {{< cards >}}
   {{< card
