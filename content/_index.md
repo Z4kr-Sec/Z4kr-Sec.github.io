@@ -24,7 +24,7 @@ I'm thrilled to open up my vault of hacking knowledge. Here, you'll discover com
 
 {{< cards >}}
   {{< card
-        link="/HTB/easy/sea-htb/"
+        link="/htb/easy/sea-htb/"
         title="Sea - HTB."
         image="/assets/images/HTB/Sea/sea%20LOGO.png"
         method="resize"
@@ -35,7 +35,7 @@ I'm thrilled to open up my vault of hacking knowledge. Here, you'll discover com
   >}}
 
   {{< card
-        link="/HTB/medium/survellance-htb/"
+        link="/htb/medium/survellance-htb/"
         title="Surveillance - HTB."
         image="/assets/images/HTB/survellance/Surveillance-LOGO.png"
         method="resize"
@@ -47,7 +47,7 @@ I'm thrilled to open up my vault of hacking knowledge. Here, you'll discover com
 
 
   {{< card
-        link="/HTB/easy/analytics-htb/"
+        link="/htb/easy/analytics-htb/"
         title="Analytics - HTB."
         image="/assets/images/HTB/Analytics/Analitics-LOGO.png"
         method="resize"
@@ -59,7 +59,7 @@ I'm thrilled to open up my vault of hacking knowledge. Here, you'll discover com
 
 
   {{< card
-        link="/HTB/easy/delivery-htb/"
+        link="/htb/easy/delivery-htb/"
         title="Delivery - HTB."
         image="/assets/images/HTB/Delivery/Delivery-Logo.png"
         method="resize"
