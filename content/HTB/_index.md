@@ -1,14 +1,14 @@
 ---
 title: "HTB - WriteUps."
 date: 2025-04-26T16:19:56-04:00
-draft: true
 toc: false
 # Display the last modification date
 displayUpdatedDate: true
 enableInlineShortcodes: true
+#use a wide wight
 width: wide
+#show the content of the HTB directory 
 layout: list
-
 ## This will show all the files (Including Easy, Medium, Hard machines)
 ---
 

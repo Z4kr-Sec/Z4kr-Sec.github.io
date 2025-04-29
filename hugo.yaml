@@ -24,10 +24,10 @@ menu:
       pageRef: /
       weight : 1
     - name: Pentes Notes.
-      pageRef: /Pentest-Notes/
+      pageRef: /pentest-notes/
       weight: 2
     - name: HTB Write-Ups.
-      pageRef: /HTB
+      pageRef: /htb
       weight: 3
     - name: About.
       pageRef: /about
