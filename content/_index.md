@@ -1,8 +1,9 @@
 ---
-title: Z4kr Security. 
-description: Main landing page for my site, the goal is to show the last 9 writeups I have done.
+title: Z4kr Security.
+description: Welcome to Z4kr Security this is a place designed to learn and understand hacking concepts!
 toc: false
-layout: wide
+width: wide
+layout: single
 excludeSearch: true
 ---
 
@@ -17,12 +18,24 @@ Hello and welcome to *Z4kr Security!*
 I'm thrilled to open up my vault of hacking knowledge. Here, you'll discover comprehensive Hack The Box (HTB) write-ups and a wealth of pentesting notes that I've carefully documented over the years. My goal, is to make learning and exploring this fascinating world a bit easier for everyone!
 
 
-- Find all the write ups on -->  **[HTB WriteUps](/HTB/)**
-- Find all my notes at --> **[Pentesting Notes](/Pentest-Notes/)**
+- Find all the write ups on -->  **[HTB WriteUps](/htb/)**
+- Find all my notes at --> **[Pentesting Notes](/pentest-notes/)**
 
 ## Latest Content. 
 
 {{< cards >}}
+
+{{< card
+        link="/htb/medium/administrator/"
+        title="Administrator - HTB."
+        image="/assets/images/HTB/Administrator/Administrator-LOGO.png"
+        method="resize"
+        tag="Medium"
+        tagType="warning"
+        imageStyle="object-fit:cover;"
+        subtitle="Starting with user credentials, we used Bloodhound to map the domain, quickly identifying exploitable `GenericAll` permissions that allowed us to reset passwords using..."
+  >}}
+
   {{< card
         link="/htb/easy/sea-htb/"
         title="Sea - HTB."

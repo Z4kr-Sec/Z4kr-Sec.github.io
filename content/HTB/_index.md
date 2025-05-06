@@ -24,6 +24,31 @@ draft: false
 ## 2025
 
 
+{{% details title="Administrator" closed="true" %}}
+
+
+{{< figure
+  src="/assets/images/HTB/Administrator/Administrator-LOGO.png"
+  link="/HTB/medium/administrator/"
+  height= 400
+  width= 400
+>}}
+
+
+This Hack The Box Administrator machine is focused on exploitation of Active Directory weaknesses. Starting with user credentials, we used Bloodhound to map the domain, quickly identifying exploitable `GenericAll` permissions that allowed us to reset passwords using tools like `net rpc`.
+
+Our investigation then uncovered an FTP server with a PasswordSafe file. Cracking this file with `pwsafe2john` and John the Ripper provided further credentials, which we leveraged to exploit ForceChangePassword privileges and perform a targeted Kerberoast for even higher access. The final step involved a `DCSync` attack via Impacket, retrieving domain admin hashes and granting complete control. This showcases a direct path from initial access to domain dominance by chaining AD misconfigurations and service vulnerabilities.
+
+
+
+Continue to **[Survellance](/HTB/medium/administrator/)**
+
+##### Hands On!
+Turn on the machine on **[Hack The Box.](https://app.hackthebox.com/machines/634)**
+
+{{% /details %}}
+
+
 {{% details title="Sea" closed="true" %}}
 
 

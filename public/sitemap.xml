@@ -20,10 +20,13 @@
     <loc>http://localhost:1313/htb/hard/</loc>
     <lastmod>2025-04-27T23:10:02-04:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/pentest-notes/projects/inithack/</loc>
-    <lastmod>2025-04-27T23:30:16-04:00</lastmod>
+    <loc>http://localhost:1313/htb/medium/administrator/</loc>
+    <lastmod>2025-04-29T00:05:30-04:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/</loc>
+    <lastmod>2025-04-29T00:05:30-04:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/pentest-notes/projects/inithack/</loc>
     <lastmod>2025-04-27T23:30:16-04:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/htb/</loc>
