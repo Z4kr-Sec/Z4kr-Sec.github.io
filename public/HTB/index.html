@@ -83,7 +83,7 @@
             title="HTB Write-Ups."
             href="/htb"
             
-            class="hx:text-sm hx:contrast-more:text-gray-700 hx:contrast-more:dark:text-gray-100 hx:relative hx:-ml-2 hx:hidden hx:whitespace-nowrap hx:p-2 hx:md:inline-block hx:text-gray-600 hx:hover:text-gray-800 hx:dark:text-gray-400 hx:dark:hover:text-gray-200"
+            class="hx:text-sm hx:contrast-more:text-gray-700 hx:contrast-more:dark:text-gray-100 hx:relative hx:-ml-2 hx:hidden hx:whitespace-nowrap hx:p-2 hx:md:inline-block hx:font-medium"
           >
             <span class="hx:text-center">HTB Write-Ups.</span>
           </a><a
@@ -284,6 +284,14 @@
             </li><li class="hx:flex hx:flex-col "><a
     class="hx:flex hx:items-center hx:justify-between hx:gap-2 hx:cursor-pointer hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [word-break:break-word]
       hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:contrast-more:border hx:contrast-more:border-transparent hx:contrast-more:text-gray-900 hx:contrast-more:hover:border-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:dark:text-gray-50 hx:contrast-more:dark:hover:border-gray-50"
+    href="/pentest-notes/enueration/"
+    
+  >Nmap Enumeration.
+    </a>
+              
+            </li><li class="hx:flex hx:flex-col "><a
+    class="hx:flex hx:items-center hx:justify-between hx:gap-2 hx:cursor-pointer hx:rounded-sm hx:px-2 hx:py-1.5 hx:text-sm hx:transition-colors [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [word-break:break-word]
+      hx:text-gray-500 hx:hover:bg-gray-100 hx:hover:text-gray-900 hx:contrast-more:border hx:contrast-more:border-transparent hx:contrast-more:text-gray-900 hx:contrast-more:hover:border-gray-900 hx:dark:text-neutral-400 hx:dark:hover:bg-primary-100/5 hx:dark:hover:text-gray-50 hx:contrast-more:dark:text-gray-50 hx:contrast-more:dark:hover:border-gray-50"
     href="/pentest-notes/projects/"
     
   >Projects
@@ -416,7 +424,7 @@
 </figure>
 <p>This Hack The Box Administrator machine is focused on exploitation of Active Directory weaknesses. Starting with user credentials, we used Bloodhound to map the domain, quickly identifying exploitable <code>GenericAll</code> permissions that allowed us to reset passwords using tools like <code>net rpc</code>.</p>
 <p>Our investigation then uncovered an FTP server with a PasswordSafe file. Cracking this file with <code>pwsafe2john</code> and John the Ripper provided further credentials, which we leveraged to exploit ForceChangePassword privileges and perform a targeted Kerberoast for even higher access. The final step involved a <code>DCSync</code> attack via Impacket, retrieving domain admin hashes and granting complete control. This showcases a direct path from initial access to domain dominance by chaining AD misconfigurations and service vulnerabilities.</p>
-<p>Continue to <strong><a href="/htb/medium/administrator/" >Survellance</a></strong></p>
+<p>Continue to <strong><a href="/htb/medium/administrator/" >Administartor</a></strong></p>
 <h5>Hands On!<span class="hx:absolute hx:-mt-20" id="hands-on"></span>
     <a href="#hands-on" class="subheading-anchor" aria-label="Permalink for this section"></a></h5><p>Turn on the machine on <strong><a href="https://app.hackthebox.com/machines/634" target="_blank" rel="noopener">Hack The Box.</a></strong></p>
   </div>

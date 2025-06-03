@@ -41,7 +41,7 @@ Our investigation then uncovered an FTP server with a PasswordSafe file. Crackin
 
 
 
-Continue to **[Survellance](/HTB/medium/administrator/)**
+Continue to **[Administartor](/HTB/medium/administrator/)**
 
 ##### Hands On!
 Turn on the machine on **[Hack The Box.](https://app.hackthebox.com/machines/634)**
