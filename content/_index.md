@@ -104,7 +104,7 @@ Hello, I'm Z4kr, a passionate computer enthusiast with a lifelong curiosity abou
 
 [Go to about!](/about/)
 
-### Legal Disclamer.
+## Legal Disclamer.
 
 **Important Notice:**
 
@@ -117,3 +117,8 @@ You are solely responsible for your conduct and any consequences that may arise 
 It is your responsibility to ensure that any activities you undertake comply with all applicable laws and regulations. Always seek explicit permission before testing or interacting with any systems or networks that you do not own or have the legal right to access.
 
 By continuing to use this blog, you agree to these terms and acknowledge that the information provided herein, including collected notes, is for educational study purposes only. Your assistance in identifying and correcting any errors or referencing issues is greatly appreciated.
+
+
+### Collaboration & Correction
+
+I'm always open to **collaboration** and giving **proper attribution** to external work. If you notice any inaccuracies or have suggestions for improvement, please don't hesitate to contact me so I can address them. Your feedback helps make this resource better for everyone.
