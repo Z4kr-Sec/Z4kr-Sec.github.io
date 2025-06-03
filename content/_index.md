@@ -26,6 +26,16 @@ I'm thrilled to open up my vault of hacking knowledge. Here, you'll discover com
 {{< cards >}}
 
 {{< card
+      link="/pentest-notes/enumeration/"
+      title="Nmap Enumeration."
+      image="/assets/images/Pentest-Notes/Nmap-logo.jpg"
+      method="resize"
+      tag="Documentation."
+      imageStyle="object-fit:cover;"
+      subtitle="This Python script streamlines the initial setup for penetration testing by automating folder creation and Nmap scan configuration. It saves you time by handling repetitive tasks, allowing you to focus on the actual testing process."
+>}}
+
+{{< card
         link="/htb/medium/administrator/"
         title="Administrator - HTB."
         image="/assets/images/HTB/Administrator/Administrator-LOGO.png"
@@ -80,17 +90,6 @@ I'm thrilled to open up my vault of hacking knowledge. Here, you'll discover com
         tagType="info"
         imageStyle="object-fit:cover;"
         subtitle="Delivery is a Linux HTB machine, We start this machine by checking the web server hosted on port 80..."
-  >}}
-
-
-    {{< card
-        link="/pentest-notes/projects/inithack/"
-        title="InitHACK: Automate Pentesting Folder Setup and Nmap Scans."
-        image="/assets/images/Projects/InitHack/initHACK.png"
-        method="resize"
-        tag="Project"
-        imageStyle="object-fit:cover;"
-        subtitle="This Python script streamlines the initial setup for penetration testing by automating folder creation and Nmap scan configuration. It saves you time by handling repetitive tasks, allowing you to focus on the actual testing process."
   >}}
 
 {{< /cards >}}
