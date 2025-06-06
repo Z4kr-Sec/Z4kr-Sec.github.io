@@ -20,7 +20,7 @@ I am an ethical hacker with a deep interest in penetration testing and red teami
 
 ##  Follow me 
 
-- {{< icon "mygit" >}} - https://github.com/Z4kr-Sec/
+- {{< icon "gitu" >}} - https://github.com/Z4kr-Sec/
 - {{< icon "linkedin" >}} - [Ricardo Morales Solorzano.](https://www.linkedin.com/in/ricardo-andres-morales-solorzano-491b26191/)
 - {{< icon "HTB-icon" >}} - https://app.hackthebox.com/users/319664
 
@@ -32,7 +32,7 @@ I am an ethical hacker with a deep interest in penetration testing and red teami
 - Check the certificate on ***[Credly](https://www.credly.com/badges/9b18e445-f8f0-4a09-96b3-8ce80c469440/public_url).***
 
 
-![CPTS-cert](/assets/images/Certs&Prolabs/CPTS.png)
+![CPTS-cert](/assets/images/Cert&labs/CPTS.png)
 
 
 
@@ -40,13 +40,13 @@ I am an ethical hacker with a deep interest in penetration testing and red teami
 - Hack The Box - Zephyr Pro Lab
     - ***Completed on:*** Sept 2023
 
-![zephyr](/assets/images/Certs&Prolabs/Zephyr.png)
+![zephyr](/assets/images/Cert&labs/Zephyr.png)
 
 
 - Hack The Box - Dante Pro Lab 
     - ***Completed on:*** Sept 2022
 
-![Dante](/assets/images/Certs&Prolabs/Dante.png)
+![Dante](/assets/images/Cert&labs/Dante.png)
 
 ## Contact 
 - email: z4rkseccontact@gmail.com
