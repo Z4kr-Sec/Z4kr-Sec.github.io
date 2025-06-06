@@ -20,23 +20,33 @@ I am an ethical hacker with a deep interest in penetration testing and red teami
 
 ##  Follow me 
 
+- {{< icon "mygit" >}} - https://github.com/Z4kr-Sec/
+- {{< icon "linkedin" >}} - [Ricardo Morales Solorzano.](https://www.linkedin.com/in/ricardo-andres-morales-solorzano-491b26191/)
+- {{< icon "HTB-icon" >}} - https://app.hackthebox.com/users/319664
+
+
 ## Hack The Box (HTB)
-### Machines
- Total machines completed:
 
- - Easy #: 23.
- - Medium #: 16.
- - Hard #: 3. 
- - insane #: 0
- 
- Total write-ups published: 4.
+## Certifications.
+### Certified Penetration Tester Specialist (CPTS)
+- Check the certificate on ***[Credly](https://www.credly.com/badges/9b18e445-f8f0-4a09-96b3-8ce80c469440/public_url).***
 
 
-### Prolabs  & Certs
-- Hack The Box - Dante Pro Lab 
-    - ***Completed on:*** Sept 2022
+![CPTS-cert](/assets/images/Certs&Prolabs/CPTS.png)
+
+
+
+## Pro Labs.
 - Hack The Box - Zephyr Pro Lab
     - ***Completed on:*** Sept 2023
+
+![zephyr](/assets/images/Certs&Prolabs/Zephyr.png)
+
+
+- Hack The Box - Dante Pro Lab 
+    - ***Completed on:*** Sept 2022
+
+![Dante](/assets/images/Certs&Prolabs/Dante.png)
 
 ## Contact 
 - email: z4rkseccontact@gmail.com

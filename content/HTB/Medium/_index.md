@@ -32,7 +32,7 @@ Our investigation then uncovered an FTP server with a PasswordSafe file. Crackin
 Continue to **[Administrator](/HTB/medium/administrator/)**
 
 ##### Hands On!
-Turn on the machine on **[Hack The Box.](https://app.hackthebox.com/machines/634)**
+{{< icon "HTB-icon" >}} Turn on the machine on **[Hack The Box.](https://app.hackthebox.com/machines/634)**
 
 {{% /details %}}
 
@@ -54,6 +54,6 @@ Survellance is a medium machine of Hack The Box (HTB), the machine  begins with 
 Continue to **[Survellance](/HTB/medium/survellance-htb/)**
 
 ##### Hands On!
-Turn on the machine on **[Hack The Box.](https://app.hackthebox.com/machines/580)**
+{{< icon "HTB-icon" >}} Turn on the machine on **[Hack The Box.](https://app.hackthebox.com/machines/580)**
 
 {{% /details %}}

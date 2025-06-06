@@ -32,7 +32,7 @@ I'm thrilled to open up my vault of hacking knowledge. Here, you'll discover com
       method="resize"
       tag="Documentation."
       imageStyle="object-fit:cover;"
-      subtitle="This Python script streamlines the initial setup for penetration testing by automating folder creation and Nmap scan configuration. It saves you time by handling repetitive tasks, allowing you to focus on the actual testing process."
+      subtitle="Every successful penetration, every robust defense, begins with information. The digital realm, like the physical world, demands thorough reconnaissance to uncover its secrets and vulnerabilities. For years, one name has consistently stood out as one of the best network discovery tools: Nmap."
 >}}
 
 {{< card

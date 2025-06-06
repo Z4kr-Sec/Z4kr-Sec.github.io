@@ -30,7 +30,7 @@ Sea is an Easy-rated Linux machine on Hack The Box that requires thorough web en
 Continue to **[Sea](/htb/easy/sea-htb/)**
 
 ##### Hands On!
-Turn on the machine on **[Hack The Box.](https://app.hackthebox.com/machines/620)**
+{{< icon "HTB-icon" >}}  Turn on the machine on **[Hack The Box.](https://app.hackthebox.com/machines/620)**
 
 {{% /details %}}
 
@@ -54,7 +54,7 @@ This machine focuses on exploiting a vulnerable instance of *Metabase* to gain i
 Continue to **[Analytics](/htb/easy/analytics-htb/)**
 
 ##### Hands On!
-Turn on the machine on **[Hack The Box.](https://app.hackthebox.com/machines/569)**
+{{< icon "HTB-icon" >}}  Turn on the machine on **[Hack The Box.](https://app.hackthebox.com/machines/569)**
 
 {{% /details %}}
 
@@ -68,7 +68,7 @@ CREATE AND INSERT EXCERPT FOR DELIVERY MACCHINE
 
 Continue to **[Delivery](/htb/easy/delivery-htb/)**
 ##### Hands On!
-Turn on the machine on **[Hack The Box.](https://app.hackthebox.com/machines/308)**
+{{< icon "HTB-icon" >}}  Turn on the machine on **[Hack The Box.](https://app.hackthebox.com/machines/308)**
 
 {{% /details %}}
 

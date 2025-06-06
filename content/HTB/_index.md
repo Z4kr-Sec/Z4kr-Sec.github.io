@@ -44,7 +44,7 @@ Our investigation then uncovered an FTP server with a PasswordSafe file. Crackin
 Continue to **[Administartor](/HTB/medium/administrator/)**
 
 ##### Hands On!
-Turn on the machine on **[Hack The Box.](https://app.hackthebox.com/machines/634)**
+{{< icon "HTB-icon" >}}  Turn on the machine on **[Hack The Box.](https://app.hackthebox.com/machines/634)**
 
 {{% /details %}}
 
@@ -65,7 +65,7 @@ Sea is an Easy-rated Linux machine on Hack The Box that requires thorough web en
 Continue to **[Sea](/htb/easy/sea-htb/)**
 
 ##### Hands On!
-Turn on the machine on **[Hack The Box.](https://app.hackthebox.com/machines/620)**
+{{< icon "HTB-icon" >}} Turn on the machine on **[Hack The Box.](https://app.hackthebox.com/machines/620)**
 
 {{% /details %}}
 
@@ -89,7 +89,7 @@ Survellance is a medium machine of Hack The Box (HTB), the machine  begins with 
 Continue to **[Survellance](/htb/medium/survellance-htb/)**
 
 ##### Hands On!
-Turn on the machine on **[Hack The Box.](https://app.hackthebox.com/machines/580)**
+{{< icon "HTB-icon" >}} Turn on the machine on **[Hack The Box.](https://app.hackthebox.com/machines/580)**
 
 {{% /details %}}
 
@@ -111,7 +111,7 @@ This machine focuses on exploiting a vulnerable instance of *Metabase* to gain i
 Continue to **[Analytics](/htb/easy/analytics-htb/)**
 
 ##### Hands On!
-Turn on the machine on **[Hack The Box.](https://app.hackthebox.com/machines/569)**
+{{< icon "HTB-icon" >}} Turn on the machine on **[Hack The Box.](https://app.hackthebox.com/machines/569)**
 
 {{% /details %}}
 
@@ -125,7 +125,7 @@ CREATE AND INSERT EXCERPT FOR DELIVERY MACCHINE
 
 Continue to **[Delivery](/htb/easy/delivery-htb/)**
 ##### Hands On!
-Turn on the machine on **[Hack The Box.](https://app.hackthebox.com/machines/308)**
+{{< icon "HTB-icon" >}} Turn on the machine on **[Hack The Box.](https://app.hackthebox.com/machines/308)**
 
 {{% /details %}}
 
